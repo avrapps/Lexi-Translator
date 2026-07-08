@@ -21,6 +21,12 @@
 
 package com.falconlabs.aitranslator.di
 
+import com.falconlabs.aitranslator.ads.AdMobAdsManager
+import com.falconlabs.aitranslator.ads.AdsManager
+import com.falconlabs.aitranslator.analytics.FirebaseAnalyticsImpl
+import com.falconlabs.aitranslator.analytics.LexiAnalytics
+import com.falconlabs.aitranslator.billing.BillingRepository
+import com.falconlabs.aitranslator.billing.PlayBillingRepository
 import org.koin.dsl.module
 
 /**
@@ -29,9 +35,15 @@ import org.koin.dsl.module
  * analytics, ads, and billing services.
  */
 val androidPlatformModule = module {
+    // Analytics: Firebase Analytics + Crashlytics (disabled by default)
+    single<LexiAnalytics> { FirebaseAnalyticsImpl(get()) }
+
+    // Billing: Google Play Billing for "Buy Me a Coffee" in-app purchase
+    single<BillingRepository> { PlayBillingRepository(get()) }
+
+    // Ads: AdMob interstitial — shown ONLY on app close, disabled when purchased or offline
+    single<AdsManager> { AdMobAdsManager(get(), get()) }
+
     // Platform-specific bindings for Android
     // Example: single { AndroidSqliteDriver(LexiDatabase.Schema, get(), "lexi.db") }
-    // Example: single<LexiAnalytics> { FirebaseAnalyticsImpl(get()) }
-    // Example: single<AdsManager> { AdMobAdsManager(get()) }
-    // Example: single<BillingRepository> { PlayBillingRepository(get()) }
 }

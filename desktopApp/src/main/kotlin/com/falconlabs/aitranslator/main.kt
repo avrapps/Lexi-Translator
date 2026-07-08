@@ -28,6 +28,7 @@ import com.falconlabs.aitranslator.di.dataModule
 import com.falconlabs.aitranslator.di.desktopPlatformModule
 import com.falconlabs.aitranslator.di.domainModule
 import com.falconlabs.aitranslator.di.viewModelModule
+import com.falconlabs.aitranslator.ui.LexiApp
 
 import org.koin.core.context.startKoin
 
@@ -46,7 +47,7 @@ fun main() {
             onCloseRequest = ::exitApplication,
             title = "Lexi Translator",
         ) {
-            App()
+            LexiApp()
         }
     }
 }

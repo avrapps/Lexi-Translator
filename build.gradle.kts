@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.composeCompiler) apply false
     alias(libs.plugins.kotlinJvm) apply false
     alias(libs.plugins.kotlinMultiplatform) apply false
+    alias(libs.plugins.kotlinSerialization) apply false
     alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.detekt) apply false
     alias(libs.plugins.sqldelight) apply false
@@ -16,7 +17,7 @@ plugins {
 val licenseHeaderFile = file("config/license-header.txt")
 val licenseHeaderText = licenseHeaderFile.readText().trim()
 
-val checkLicenseHeaders by tasks.registering {
+val checkLicenseHeaders = tasks.register("checkLicenseHeaders") {
     group = "verification"
     description = "Checks that all Kotlin source files contain the AGPL license header."
 
@@ -61,7 +62,7 @@ val checkLicenseHeaders by tasks.registering {
 }
 
 // Install Git hooks from version-controlled scripts directory
-val installGitHooks by tasks.registering(Copy::class) {
+val installGitHooks = tasks.register<Copy>("installGitHooks") {
     group = "git hooks"
     description = "Installs pre-commit Git hooks for ktlint and detekt enforcement."
     from("scripts/git-hooks/pre-commit")
@@ -87,8 +88,20 @@ subprojects {
         ignoreFailures.set(false)
         enableExperimentalRules.set(true)
         filter {
-            exclude("**/build/**")
-            exclude("**/generated/**")
+            include("**/src/**")
+        }
+    }
+
+    // Skip ktlint for generated source sets (SQLDelight, Compose Resources)
+    afterEvaluate {
+        tasks.matching {
+            it.name.startsWith("ktlint") && (
+                it.name.contains("Generated") ||
+                    it.name.contains("SqlDelight") ||
+                    it.name.contains("Resource")
+                )
+        }.configureEach {
+            enabled = false
         }
     }
 

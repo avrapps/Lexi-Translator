@@ -1,0 +1,373 @@
+-- Lexi Translator Database Schema
+-- All tables for the offline AI translation platform
+
+-- ============================================================
+-- Table: installed_model
+-- Stores metadata for AI models that have been downloaded and installed
+-- ============================================================
+CREATE TABLE installed_model (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    category TEXT NOT NULL,
+    version TEXT NOT NULL,
+    size_bytes INTEGER NOT NULL,
+    source_lang TEXT,
+    target_lang TEXT,
+    engine_type TEXT,
+    file_path TEXT NOT NULL,
+    sha256_checksum TEXT NOT NULL,
+    installed_at INTEGER NOT NULL,
+    last_used_at INTEGER,
+    quality_rating REAL DEFAULT 0.0,
+    ram_requirement_mb INTEGER DEFAULT 0
+);
+
+-- ============================================================
+-- Table: model_download
+-- Tracks in-progress and completed model downloads with resume support
+-- ============================================================
+CREATE TABLE model_download (
+    model_id TEXT NOT NULL PRIMARY KEY,
+    state TEXT NOT NULL,
+    bytes_downloaded INTEGER NOT NULL DEFAULT 0,
+    total_bytes INTEGER NOT NULL,
+    partial_file_path TEXT,
+    started_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    error_message TEXT
+);
+
+-- ============================================================
+-- Table: folder
+-- Organizational folders for library entries, nested up to 3 levels
+-- ============================================================
+CREATE TABLE folder (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    parent_id TEXT,
+    created_at INTEGER NOT NULL,
+    depth INTEGER NOT NULL DEFAULT 0 CHECK (depth <= 3),
+    FOREIGN KEY (parent_id) REFERENCES folder(id) ON DELETE CASCADE
+);
+
+-- ============================================================
+-- Table: library_entry
+-- Core storage for translations, speech, voice, documents, conversations
+-- ============================================================
+CREATE TABLE library_entry (
+    id TEXT NOT NULL PRIMARY KEY,
+    content_type TEXT NOT NULL,
+    source_text TEXT,
+    translated_text TEXT,
+    source_lang TEXT NOT NULL,
+    target_lang TEXT NOT NULL,
+    engine_used TEXT,
+    voice_used TEXT,
+    confidence TEXT,
+    is_favorite INTEGER NOT NULL DEFAULT 0,
+    is_pinned INTEGER NOT NULL DEFAULT 0,
+    folder_id TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    FOREIGN KEY (folder_id) REFERENCES folder(id) ON DELETE SET NULL
+);
+
+-- ============================================================
+-- Table: tag
+-- User-defined tags for categorizing library entries
+-- ============================================================
+CREATE TABLE tag (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE
+);
+
+-- ============================================================
+-- Table: entry_tag
+-- Many-to-many relationship between library entries and tags
+-- ============================================================
+CREATE TABLE entry_tag (
+    entry_id TEXT NOT NULL,
+    tag_id TEXT NOT NULL,
+    PRIMARY KEY (entry_id, tag_id),
+    FOREIGN KEY (entry_id) REFERENCES library_entry(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tag(id) ON DELETE CASCADE
+);
+
+-- ============================================================
+-- Table: conversation_card
+-- Individual utterances from Live Interpreter sessions
+-- ============================================================
+CREATE TABLE conversation_card (
+    id TEXT NOT NULL PRIMARY KEY,
+    session_id TEXT NOT NULL,
+    source_text TEXT NOT NULL,
+    translated_text TEXT NOT NULL,
+    source_lang TEXT NOT NULL,
+    target_lang TEXT NOT NULL,
+    confidence_score REAL NOT NULL,
+    timestamp INTEGER NOT NULL,
+    is_pinned INTEGER NOT NULL DEFAULT 0
+);
+
+-- ============================================================
+-- Table: session_state
+-- Persists active session for crash recovery
+-- ============================================================
+CREATE TABLE session_state (
+    id INTEGER NOT NULL PRIMARY KEY DEFAULT 1,
+    active_screen TEXT NOT NULL,
+    conversation_json TEXT,
+    pending_input TEXT,
+    last_saved_at INTEGER NOT NULL
+);
+
+-- ============================================================
+-- Table: user_setting
+-- Key-value store for application settings
+-- ============================================================
+CREATE TABLE user_setting (
+    key TEXT NOT NULL PRIMARY KEY,
+    value_json TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+);
+
+-- ============================================================
+-- FTS5 Virtual Table: library_entry_fts
+-- Full-text search index for source and translated text
+-- ============================================================
+CREATE VIRTUAL TABLE library_entry_fts USING fts5(
+    source_text,
+    translated_text,
+    content='library_entry',
+    content_rowid='rowid'
+);
+
+-- ============================================================
+-- Indexes
+-- ============================================================
+CREATE INDEX idx_entry_content_type ON library_entry(content_type);
+CREATE INDEX idx_entry_source_lang ON library_entry(source_lang);
+CREATE INDEX idx_entry_target_lang ON library_entry(target_lang);
+CREATE INDEX idx_entry_created_at ON library_entry(created_at);
+CREATE INDEX idx_entry_folder ON library_entry(folder_id);
+CREATE INDEX idx_entry_favorite ON library_entry(is_favorite);
+CREATE INDEX idx_conversation_session ON conversation_card(session_id);
+CREATE INDEX idx_conversation_timestamp ON conversation_card(timestamp);
+
+-- ============================================================
+-- Queries: installed_model
+-- ============================================================
+selectAllModels:
+SELECT * FROM installed_model ORDER BY installed_at DESC;
+
+selectModelById:
+SELECT * FROM installed_model WHERE id = ?;
+
+selectModelsByCategory:
+SELECT * FROM installed_model WHERE category = ? ORDER BY name ASC;
+
+insertModel:
+INSERT OR REPLACE INTO installed_model(
+    id, name, category, version, size_bytes, source_lang, target_lang,
+    engine_type, file_path, sha256_checksum, installed_at, last_used_at,
+    quality_rating, ram_requirement_mb
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateLastUsed:
+UPDATE installed_model SET last_used_at = ? WHERE id = ?;
+
+deleteModel:
+DELETE FROM installed_model WHERE id = ?;
+
+-- ============================================================
+-- Queries: model_download
+-- ============================================================
+selectDownloadByModelId:
+SELECT * FROM model_download WHERE model_id = ?;
+
+selectActiveDownloads:
+SELECT * FROM model_download WHERE state IN ('QUEUED', 'DOWNLOADING', 'PAUSED', 'VERIFYING')
+ORDER BY started_at DESC;
+
+insertDownload:
+INSERT OR REPLACE INTO model_download(
+    model_id, state, bytes_downloaded, total_bytes,
+    partial_file_path, started_at, updated_at, error_message
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+updateDownloadProgress:
+UPDATE model_download
+SET bytes_downloaded = ?, state = ?, updated_at = ?
+WHERE model_id = ?;
+
+updateDownloadState:
+UPDATE model_download SET state = ?, updated_at = ?, error_message = ? WHERE model_id = ?;
+
+deleteDownload:
+DELETE FROM model_download WHERE model_id = ?;
+
+-- ============================================================
+-- Queries: library_entry
+-- ============================================================
+selectAllEntries:
+SELECT * FROM library_entry ORDER BY created_at DESC;
+
+selectEntryById:
+SELECT * FROM library_entry WHERE id = ?;
+
+selectEntriesByContentType:
+SELECT * FROM library_entry WHERE content_type = ? ORDER BY created_at DESC;
+
+selectEntriesByFolder:
+SELECT * FROM library_entry WHERE folder_id = ? ORDER BY created_at DESC;
+
+selectFavoriteEntries:
+SELECT * FROM library_entry WHERE is_favorite = 1 ORDER BY created_at DESC;
+
+selectEntriesByDateRange:
+SELECT * FROM library_entry WHERE created_at >= ? AND created_at <= ? ORDER BY created_at DESC;
+
+insertEntry:
+INSERT OR REPLACE INTO library_entry(
+    id, content_type, source_text, translated_text, source_lang, target_lang,
+    engine_used, voice_used, confidence, is_favorite, is_pinned,
+    folder_id, created_at, updated_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateEntryFavorite:
+UPDATE library_entry SET is_favorite = ?, updated_at = ? WHERE id = ?;
+
+updateEntryFolder:
+UPDATE library_entry SET folder_id = ?, updated_at = ? WHERE id = ?;
+
+deleteEntry:
+DELETE FROM library_entry WHERE id = ?;
+
+deleteEntriesByIds:
+DELETE FROM library_entry WHERE id IN ?;
+
+-- ============================================================
+-- Queries: folder
+-- ============================================================
+selectAllFolders:
+SELECT * FROM folder ORDER BY name ASC;
+
+selectFolderById:
+SELECT * FROM folder WHERE id = ?;
+
+selectFoldersByParent:
+SELECT * FROM folder WHERE parent_id = ? ORDER BY name ASC;
+
+selectRootFolders:
+SELECT * FROM folder WHERE parent_id IS NULL ORDER BY name ASC;
+
+insertFolder:
+INSERT OR REPLACE INTO folder(id, name, parent_id, created_at, depth) VALUES (?, ?, ?, ?, ?);
+
+deleteFolder:
+DELETE FROM folder WHERE id = ?;
+
+-- ============================================================
+-- Queries: tag
+-- ============================================================
+selectAllTags:
+SELECT * FROM tag ORDER BY name ASC;
+
+selectTagById:
+SELECT * FROM tag WHERE id = ?;
+
+selectTagByName:
+SELECT * FROM tag WHERE name = ?;
+
+insertTag:
+INSERT OR REPLACE INTO tag(id, name) VALUES (?, ?);
+
+deleteTag:
+DELETE FROM tag WHERE id = ?;
+
+-- ============================================================
+-- Queries: entry_tag
+-- ============================================================
+selectTagsForEntry:
+SELECT tag.* FROM tag
+INNER JOIN entry_tag ON tag.id = entry_tag.tag_id
+WHERE entry_tag.entry_id = ?;
+
+selectEntriesForTag:
+SELECT library_entry.* FROM library_entry
+INNER JOIN entry_tag ON library_entry.id = entry_tag.entry_id
+WHERE entry_tag.tag_id = ?;
+
+insertEntryTag:
+INSERT OR IGNORE INTO entry_tag(entry_id, tag_id) VALUES (?, ?);
+
+deleteEntryTag:
+DELETE FROM entry_tag WHERE entry_id = ? AND tag_id = ?;
+
+deleteAllTagsForEntry:
+DELETE FROM entry_tag WHERE entry_id = ?;
+
+-- ============================================================
+-- Queries: conversation_card
+-- ============================================================
+selectCardsBySession:
+SELECT * FROM conversation_card WHERE session_id = ? ORDER BY timestamp ASC;
+
+selectRecentCards:
+SELECT * FROM conversation_card ORDER BY timestamp DESC LIMIT ?;
+
+insertCard:
+INSERT OR REPLACE INTO conversation_card(
+    id, session_id, source_text, translated_text, source_lang,
+    target_lang, confidence_score, timestamp, is_pinned
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateCardPinned:
+UPDATE conversation_card SET is_pinned = ? WHERE id = ?;
+
+deleteCard:
+DELETE FROM conversation_card WHERE id = ?;
+
+deleteCardsBySession:
+DELETE FROM conversation_card WHERE session_id = ?;
+
+-- ============================================================
+-- Queries: session_state
+-- ============================================================
+selectSessionState:
+SELECT * FROM session_state WHERE id = 1;
+
+upsertSessionState:
+INSERT OR REPLACE INTO session_state(
+    id, active_screen, conversation_json, pending_input, last_saved_at
+) VALUES (1, ?, ?, ?, ?);
+
+clearSessionState:
+DELETE FROM session_state WHERE id = 1;
+
+-- ============================================================
+-- Queries: user_setting
+-- ============================================================
+selectAllSettings:
+SELECT * FROM user_setting ORDER BY key ASC;
+
+selectSettingByKey:
+SELECT * FROM user_setting WHERE key = ?;
+
+upsertSetting:
+INSERT OR REPLACE INTO user_setting(key, value_json, updated_at) VALUES (?, ?, ?);
+
+deleteSetting:
+DELETE FROM user_setting WHERE key = ?;
+
+deleteAllSettings:
+DELETE FROM user_setting;
+
+-- ============================================================
+-- Queries: library_entry_fts (full-text search)
+-- ============================================================
+searchEntries:
+SELECT library_entry.* FROM library_entry
+INNER JOIN library_entry_fts ON library_entry.rowid = library_entry_fts.rowid
+WHERE library_entry_fts MATCH ?
+ORDER BY library_entry.created_at DESC;

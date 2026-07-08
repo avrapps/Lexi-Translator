@@ -13,11 +13,17 @@ interface DeviceProfile {
 }
 
 const devices: DeviceProfile[] = [
-  // Phones
-  { name: "iPhone-15-Pro", width: 393, height: 852, deviceScaleFactor: 3, platform: "ios", category: "phone" },
+  // iOS - iPhone 6.5" (1242×2688 required by App Store)
+  { name: "iPhone-6.5-inch", width: 414, height: 896, deviceScaleFactor: 3, platform: "ios", category: "phone" },
+  // iOS - iPhone 6.7" (1284×2778 required by App Store)
+  { name: "iPhone-6.7-inch", width: 428, height: 926, deviceScaleFactor: 3, platform: "ios", category: "phone" },
+  // iOS - iPad 12.9" (2048×2732 required by App Store)
+  { name: "iPad-12.9-inch", width: 1024, height: 1366, deviceScaleFactor: 2, platform: "ios", category: "tablet" },
+  // iOS - iPad 13" (2064×2752 required by App Store)
+  { name: "iPad-13-inch", width: 1032, height: 1376, deviceScaleFactor: 2, platform: "ios", category: "tablet" },
+  // Android Phone
   { name: "Pixel-8-Pro", width: 412, height: 915, deviceScaleFactor: 2.625, platform: "android", category: "phone" },
-  // Tablets
-  { name: "iPad-Pro-12.9", width: 1024, height: 1366, deviceScaleFactor: 2, platform: "ios", category: "tablet" },
+  // Android Tablet
   { name: "Galaxy-Tab-S9", width: 800, height: 1280, deviceScaleFactor: 2, platform: "android", category: "tablet" },
   // Desktops
   { name: "MacBook-Pro-16", width: 1728, height: 1117, deviceScaleFactor: 2, platform: "macos", category: "desktop" },
@@ -88,9 +94,31 @@ function generateStoreScreenshot(
   const isDesktop = device.category === "desktop";
   const isTablet = device.category === "tablet";
 
-  // Output canvas (store screenshot dimensions)
-  const canvasWidth = isDesktop ? 1920 : isTablet ? 1200 : 1080;
-  const canvasHeight = isDesktop ? 1080 : isTablet ? 1600 : 1920;
+  // Output canvas — exact store pixel dimensions
+  // iOS iPhone 6.5": 1242×2688, iPhone 6.7": 1284×2778
+  // iOS iPad 12.9": 2048×2732, iPad 13": 2064×2752
+  // Android/Desktop: use standard marketing sizes
+  let canvasWidth: number, canvasHeight: number;
+  if (device.platform === "ios" && device.category === "phone") {
+    if (device.name === "iPhone-6.5-inch") {
+      canvasWidth = 1242; canvasHeight = 2688;
+    } else {
+      canvasWidth = 1284; canvasHeight = 2778;
+    }
+  } else if (device.platform === "ios" && device.category === "tablet") {
+    if (device.name === "iPad-12.9-inch") {
+      canvasWidth = 2048; canvasHeight = 2732;
+    } else {
+      canvasWidth = 2064; canvasHeight = 2752;
+    }
+  } else if (isDesktop) {
+    canvasWidth = 1920; canvasHeight = 1080;
+  } else if (isTablet) {
+    canvasWidth = 1200; canvasHeight = 1600;
+  } else {
+    // Android phone
+    canvasWidth = 1080; canvasHeight = 1920;
+  }
 
   // Device mockup sizing — fill more of the canvas
   let mockupWidth: number, mockupHeight: number;
@@ -349,14 +377,26 @@ test.describe("Lexi Translator - Store Screenshots", () => {
         const screenshotBase64 = rawScreenshot.toString("base64");
         const storeHtml = generateStoreScreenshot(device, slide, screenshotBase64);
 
-        const isDesktop = device.category === "desktop";
-        const isTablet = device.category === "tablet";
-        const canvasWidth = isDesktop ? 1920 : isTablet ? 1200 : 1080;
-        const canvasHeight = isDesktop ? 1080 : isTablet ? 1600 : 1920;
+        // Determine exact output pixel dimensions
+        let outWidth: number, outHeight: number;
+        if (device.platform === "ios" && device.category === "phone") {
+          if (device.name === "iPhone-6.5-inch") { outWidth = 1242; outHeight = 2688; }
+          else { outWidth = 1284; outHeight = 2778; }
+        } else if (device.platform === "ios" && device.category === "tablet") {
+          if (device.name === "iPad-12.9-inch") { outWidth = 2048; outHeight = 2732; }
+          else { outWidth = 2064; outHeight = 2752; }
+        } else if (device.category === "desktop") {
+          outWidth = 1920; outHeight = 1080;
+        } else if (device.category === "tablet") {
+          outWidth = 1200; outHeight = 1600;
+        } else {
+          outWidth = 1080; outHeight = 1920;
+        }
 
+        // Render at 1x — canvas dimensions ARE the final pixel output
         const storeContext = await browser.newContext({
-          viewport: { width: canvasWidth, height: canvasHeight },
-          deviceScaleFactor: 2,
+          viewport: { width: outWidth, height: outHeight },
+          deviceScaleFactor: 1,
         });
         const storePage = await storeContext.newPage();
         await storePage.setContent(storeHtml);

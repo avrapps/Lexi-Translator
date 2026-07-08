@@ -21,14 +21,22 @@
 
 package com.falconlabs.aitranslator.di
 
+import com.falconlabs.aitranslator.analytics.AnalyticsSettings
+import com.falconlabs.aitranslator.db.DriverFactory
+import com.falconlabs.aitranslator.db.LexiDatabase
+
 import org.koin.dsl.module
 
 /**
  * Koin module providing data-layer dependencies (repositories, DAOs, database).
  * Use [single] for singletons (database, repositories) and [factory] for transient instances.
+ *
+ * Platform modules must provide [DriverFactory] before this module is loaded.
  */
 val dataModule = module {
-    // Database and DAOs will be registered here as single {} bindings
-    // Example: single { LexiDatabase(get()) }
-    // Example: single { ModelRepository(get()) }
+    single { get<DriverFactory>().createDriver() }
+    single { LexiDatabase(get()) }
+
+    // Analytics settings (disabled by default, wires toggle to LexiAnalytics)
+    single { AnalyticsSettings(get()) }
 }

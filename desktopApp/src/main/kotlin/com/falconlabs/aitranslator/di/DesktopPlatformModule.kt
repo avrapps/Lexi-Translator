@@ -21,6 +21,8 @@
 
 package com.falconlabs.aitranslator.di
 
+import com.falconlabs.aitranslator.analytics.DesktopAnalyticsImpl
+import com.falconlabs.aitranslator.analytics.LexiAnalytics
 import org.koin.dsl.module
 
 /**
@@ -28,7 +30,9 @@ import org.koin.dsl.module
  * Provides platform implementations: SqlDriver, engine implementations, and analytics.
  */
 val desktopPlatformModule = module {
+    // Analytics: structured JSON log files in ~/.lexi/analytics/ (disabled by default)
+    single<LexiAnalytics> { DesktopAnalyticsImpl() }
+
     // Platform-specific bindings for Desktop
     // Example: single { JdbcSqliteDriver("jdbc:sqlite:lexi.db") }
-    // Example: single<LexiAnalytics> { DesktopAnalyticsImpl() }
 }
