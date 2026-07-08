@@ -1,0 +1,24 @@
+<svg width="512" height="512" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="voxlink-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed" />
+      <stop offset="100%" stop-color="#2dd4bf" />
+    </linearGradient>
+    <filter id="voxlink-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <!-- Background -->
+  <rect width="200" height="200" rx="40" fill="#ffffff"/>
+  <!-- Sound Wave / Neural Circle -->
+  <circle cx="100" cy="100" r="80" stroke="url(#voxlink-grad)" stroke-width="2" stroke-dasharray="12 8" opacity="0.3" />
+  <!-- Core Icon -->
+  <g filter="url(#voxlink-glow)">
+    <!-- Speech Bubble Shape -->
+    <path d="M60 80C60 68.9543 68.9543 60 80 60H120C131.046 60 140 68.9543 140 80V110C140 121.046 131.046 130 120 130H100L80 150V130H80C68.9543 130 60 121.046 60 110V80Z" fill="url(#voxlink-grad)" opacity="0.9" />
+    <!-- Neural Node in center -->
+    <circle cx="100" cy="95" r="12" fill="white" />
+    <path d="M90 95H110M100 85V105M92.9289 87.9289L107.071 102.071M107.071 87.9289L92.9289 102.071" stroke="white" stroke-width="2" stroke-linecap="round" />
+  </g>
+</svg>

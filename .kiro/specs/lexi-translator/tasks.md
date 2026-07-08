@@ -13,7 +13,7 @@ Progressive delivery plan for the Lexi Translator offline AI translation platfor
 ## Wave 1: Foundation & Infrastructure
 
 - [ ] 1. Project Structure and Build Configuration
-  - [ ] 1.1 Configure CI/CD GitHub Actions workflows
+  - [x] 1.1 Configure CI/CD GitHub Actions workflows
     - Create `.github/workflows/pr-check.yml`: build Android + Desktop + iOS, run ktlint, run detekt, run unit tests
     - Create `.github/workflows/release.yml`: build AAB/APK, Desktop MSI/EXE + Snap package, iOS IPA on tag push
     - Configure release workflow to FAIL if ktlint check does not pass
@@ -22,7 +22,7 @@ Progressive delivery plan for the Lexi Translator offline AI translation platfor
     - Set 30-minute timeout for PR workflow
     - _Requirements: 1.4, 1.5_
 
-  - [ ] 1.2 Configure ktlint, detekt, and formatting enforcement
+  - [x] 1.2 Configure ktlint, detekt, and formatting enforcement
     - Add ktlint Gradle plugin with AGPL license header rule
     - Add detekt Gradle plugin with custom rule set (complexity, naming, performance)
     - Configure pre-commit Git hook that runs `ktlint --check` and `detekt` — reject non-compliant code
@@ -31,7 +31,7 @@ Progressive delivery plan for the Lexi Translator offline AI translation platfor
     - Add import ordering rule: android → com.falconlabs → third-party → kotlin → java
     - _Requirements: 1.10_
 
-  - [ ] 1.3 Add AGPL license, CONTRIBUTORS, and project governance
+  - [x] 1.3 Add AGPL license, CONTRIBUTORS, and project governance
     - Add `LICENSE` file with AGPL-3.0 full text including strict copyleft clause: any derivative work MUST publish source code under AGPL-3.0
     - Add `NOTICE` file with attribution requirements
     - Create `CONTRIBUTORS.md` template with contribution guidelines
@@ -39,7 +39,7 @@ Progressive delivery plan for the Lexi Translator offline AI translation platfor
     - Configure ktlint to FAIL builds on missing license headers
     - _Requirements: 1.6_
 
-  - [ ] 1.4 Restructure Gradle modules and version catalog
+  - [x] 1.4 Restructure Gradle modules and version catalog
     - Add SQLDelight, Koin, Kotest, ONNX Runtime, ktlint, detekt, Firebase (Crashlytics + Analytics), AdMob, and Play Billing to `libs.versions.toml`
     - Configure `sharedLogic` with SQLDelight plugin and Koin dependencies
     - Configure `sharedUI` with Compose Navigation dependencies
@@ -47,7 +47,7 @@ Progressive delivery plan for the Lexi Translator offline AI translation platfor
     - Configure Desktop packaging for Windows (MSI/EXE via Conveyor or jpackage) and Linux (Snap)
     - _Requirements: 1.1_
 
-  - [ ] 1.5 Set up Koin DI module skeleton
+  - [x] 1.5 Set up Koin DI module skeleton
     - Create `com.falconlabs.aitranslator.di` package in `sharedLogic/commonMain`
     - Define `domainModule`, `dataModule` with empty factory/single bindings
     - Create `viewModelModule` in `sharedUI/commonMain`

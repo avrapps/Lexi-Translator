@@ -11,6 +11,7 @@ kotlin {
         jvmTarget = JvmTarget.JVM_11
     }
 }
+
 dependencies {
     implementation(projects.sharedUI)
 
@@ -18,6 +19,27 @@ dependencies {
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)
+
+    // Koin for Android
+    implementation(libs.koin.android)
+
+    // Firebase (using BOM for version management)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.analytics)
+
+    // AdMob
+    implementation(libs.google.mobileAds)
+
+    // Play Billing
+    implementation(libs.play.billing)
+
+    // SQLDelight Android driver
+    implementation(libs.sqldelight.androidDriver)
+    implementation(libs.sqlcipher.android)
+
+    // ONNX Runtime
+    implementation(libs.onnxruntime.android)
 }
 
 android {

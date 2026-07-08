@@ -1,0 +1,23 @@
+Lexi Translator — Offline AI Translation Platform
+Copyright (C) 2024-2026 ANRMS PRIVATE LIMITED
+
+This software is licensed under the GNU Affero General Public License v3.0.
+
+COPYLEFT NOTICE:
+Any person or organization using, copying, modifying, or distributing any
+portion of this code — in full or in part — MUST make the COMPLETE source
+code of their entire derivative work publicly available under AGPL-3.0.
+No exceptions. No closed-source use. Network use triggers source disclosure.
+
+Third-Party Attributions:
+- OPUS-MT Translation Models (Helsinki-NLP) — CC-BY-4.0
+- Whisper Speech Recognition (OpenAI) — MIT License
+- Kokoro TTS — Apache-2.0
+- Piper TTS — MIT License
+- VITS TTS — MIT License
+- ONNX Runtime (Microsoft) — MIT License
+- Koin DI (InsertKoinIO) — Apache-2.0
+- SQLDelight (CashApp) — Apache-2.0
+- Compose Multiplatform (JetBrains) — Apache-2.0
+- Inter Font (rsms) — SIL Open Font License
+- JetBrains Mono (JetBrains) — SIL Open Font License

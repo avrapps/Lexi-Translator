@@ -1,0 +1,41 @@
+#!/bin/bash
+#
+# Pre-commit hook: runs ktlint and detekt checks.
+# Rejects commits with non-compliant code.
+#
+# This hook is installed automatically by the Gradle 'installGitHooks' task.
+# Source: scripts/git-hooks/pre-commit
+#
+
+echo "🔍 Running ktlint check..."
+./gradlew ktlintCheck --daemon --quiet
+
+KTLINT_STATUS=$?
+
+if [ $KTLINT_STATUS -ne 0 ]; then
+    echo ""
+    echo "❌ ktlint check FAILED. Please fix formatting issues before committing."
+    echo "   Run './gradlew ktlintFormat' to auto-fix formatting issues."
+    echo ""
+    exit 1
+fi
+
+echo "✅ ktlint check passed."
+echo ""
+echo "🔍 Running detekt..."
+./gradlew detekt --daemon --quiet
+
+DETEKT_STATUS=$?
+
+if [ $DETEKT_STATUS -ne 0 ]; then
+    echo ""
+    echo "❌ detekt check FAILED. Please fix code quality issues before committing."
+    echo "   Review the detekt report for details."
+    echo ""
+    exit 1
+fi
+
+echo "✅ detekt check passed."
+echo ""
+echo "✅ All pre-commit checks passed. Proceeding with commit."
+exit 0
