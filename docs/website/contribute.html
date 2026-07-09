@@ -174,11 +174,9 @@ chore(deps): bump onnxruntime to 1.17.0</code></pre>
 
           <h3>Branch Strategy</h3>
           <ul>
-            <li><code>main</code> — stable, release-ready</li>
-            <li><code>develop</code> — integration branch</li>
+            <li><code>main</code> — stable, release-ready (all PRs target main)</li>
             <li><code>feat/*</code> — feature branches</li>
             <li><code>fix/*</code> — bug fix branches</li>
-            <li><code>release/*</code> — release candidates</li>
           </ul>
         </section>
 
@@ -192,11 +190,11 @@ chore(deps): bump onnxruntime to 1.17.0</code></pre>
           <h3>Submit Code</h3>
           <ol>
             <li>Fork the repository</li>
-            <li>Create a feature branch from <code>develop</code></li>
+            <li>Create a feature branch from <code>main</code></li>
             <li>Write your changes following the coding guidelines above</li>
             <li>Add or update tests for any new functionality</li>
             <li>Run <code>./gradlew ktlintCheck detekt test</code> locally</li>
-            <li>Open a Pull Request against <code>develop</code></li>
+            <li>Open a Pull Request against <code>main</code></li>
           </ol>
 
           <h3>Translate UI Strings</h3>
