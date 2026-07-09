@@ -64,7 +64,13 @@ fun LexiNavGraph(navController: NavHostController, modifier: Modifier = Modifier
 
         // -- Translate Tab --
         navigation<TranslateGraph>(startDestination = TextTranslateRoute) {
-            composable<TextTranslateRoute> { TextTranslateScreen() }
+            composable<TextTranslateRoute> {
+                TextTranslateScreen(
+                    onNavigateToModels = { source, target ->
+                        navController.navigate(ModelStoreRoute)
+                    },
+                )
+            }
             composable<DictionaryDetailRoute> { DictionaryDetailScreen() }
         }
 
@@ -94,7 +100,11 @@ fun LexiNavGraph(navController: NavHostController, modifier: Modifier = Modifier
             composable<AiSettingsRoute> { AiSettingsScreen() }
             composable<AudioSettingsRoute> { AudioSettingsScreen() }
             composable<PrivacySettingsRoute> { PrivacySettingsScreen() }
-            composable<ModelStoreRoute> { ModelStoreScreen() }
+            composable<ModelStoreRoute> {
+                ModelStoreScreen(
+                    onBack = { navController.popBackStack() },
+                )
+            }
             composable<ModelDetailRoute> { ModelDetailScreen() }
         }
     }

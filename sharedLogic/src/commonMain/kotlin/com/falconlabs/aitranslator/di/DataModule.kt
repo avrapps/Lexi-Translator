@@ -61,7 +61,7 @@ val dataModule = module {
     single { DownloadManager(get(), get(), get(), get()) }
 
     // Model manager — public API facade for model lifecycle
-    single<ModelManager> { ModelManagerImpl(get(), get(), get(), get(), get(), get()) }
+    single<ModelManager> { ModelManagerImpl(get(), get(), get(), get(), get(), get(), get()) }
 
     // Analytics settings (disabled by default, wires toggle to LexiAnalytics)
     single { AnalyticsSettings(get()) }

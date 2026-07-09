@@ -81,6 +81,7 @@ sqlcipher-android = { module = "net.zetetic:sqlcipher-android", version.ref = "s
 
 # ONNX Runtime
 onnxruntime-android = { module = "com.microsoft.onnxruntime:onnxruntime-android", version.ref = "onnxruntime" }
+onnxruntime-jvm = { module = "com.microsoft.onnxruntime:onnxruntime", version.ref = "onnxruntime" }
 
 # Kotest
 kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }

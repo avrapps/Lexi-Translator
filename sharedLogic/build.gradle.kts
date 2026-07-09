@@ -68,6 +68,7 @@ kotlin {
         }
         jvmMain.dependencies {
             implementation(libs.sqldelight.jvmDriver)
+            implementation(libs.onnxruntime.jvm)
         }
         jvmTest.dependencies {
             implementation(libs.kotest.runner.junit5)

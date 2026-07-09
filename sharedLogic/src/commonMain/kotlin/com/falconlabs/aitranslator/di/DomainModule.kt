@@ -21,13 +21,15 @@
 
 package com.falconlabs.aitranslator.di
 
+import com.falconlabs.aitranslator.engine.translation.OfflineTranslationEngine
+import com.falconlabs.aitranslator.engine.translation.TranslationEngine
 import org.koin.dsl.module
 
 /**
- * Koin module providing domain-layer dependencies (use cases).
- * Use [factory] for transient use case instances.
+ * Koin module providing domain-layer dependencies (use cases, engines).
+ * Use [factory] for transient use case instances and [single] for engine singletons.
  */
 val domainModule = module {
-    // Use cases will be registered here as factory {} bindings
-    // Example: factory { TranslateTextUseCase(get()) }
+    // Translation engine — offline ONNX-backed (singleton for model session reuse)
+    single<TranslationEngine> { OfflineTranslationEngine(get(), get()) }
 }

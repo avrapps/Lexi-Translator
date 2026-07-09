@@ -97,6 +97,7 @@ data class ModelStoreState(
 sealed interface ModelStoreIntent {
     data class SelectTab(val tab: ModelStoreTab) : ModelStoreIntent
     data class DownloadModel(val modelId: ModelId) : ModelStoreIntent
+    data class RedownloadModel(val modelId: ModelId) : ModelStoreIntent
     data class PauseDownload(val modelId: ModelId) : ModelStoreIntent
     data class ResumeDownload(val modelId: ModelId) : ModelStoreIntent
     data class CancelDownload(val modelId: ModelId) : ModelStoreIntent
@@ -173,6 +174,7 @@ class ModelStoreViewModel(
                 _state.update { it.copy(selectedTab = intent.tab, selectedSourceLang = null, selectedTargetLang = null, selectedFilterLang = null) }
             }
             is ModelStoreIntent.DownloadModel -> startDownload(intent.modelId)
+            is ModelStoreIntent.RedownloadModel -> redownload(intent.modelId)
             is ModelStoreIntent.PauseDownload -> pauseDownload(intent.modelId)
             is ModelStoreIntent.ResumeDownload -> resumeDownload(intent.modelId)
             is ModelStoreIntent.CancelDownload -> cancelDownload(intent.modelId)
@@ -231,6 +233,17 @@ class ModelStoreViewModel(
     private fun deleteModel(modelId: ModelId) {
         viewModelScope.launch {
             modelManager.deleteModel(modelId)
+        }
+    }
+
+    private fun redownload(modelId: ModelId) {
+        viewModelScope.launch {
+            try {
+                modelManager.deleteModel(modelId)
+                modelManager.downloadModel(modelId)
+            } catch (e: Exception) {
+                _state.update { it.copy(error = e.message) }
+            }
         }
     }
 }

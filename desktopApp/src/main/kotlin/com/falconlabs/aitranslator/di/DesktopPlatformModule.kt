@@ -31,6 +31,8 @@ import com.falconlabs.aitranslator.engine.model.JvmDownloadFileManager
 import com.falconlabs.aitranslator.engine.model.JvmHttpDownloader
 import com.falconlabs.aitranslator.engine.model.JvmStorageInfoProvider
 import com.falconlabs.aitranslator.engine.model.StorageInfoProvider
+import com.falconlabs.aitranslator.engine.translation.JvmTranslationInferenceProvider
+import com.falconlabs.aitranslator.engine.translation.TranslationInferenceProvider
 
 import org.koin.dsl.module
 
@@ -50,4 +52,7 @@ val desktopPlatformModule = module {
     single<ChecksumVerifier> { JvmChecksumVerifier() }
     single<DownloadFileManager> { JvmDownloadFileManager() }
     single<StorageInfoProvider> { JvmStorageInfoProvider() }
+
+    // Translation inference — ONNX Runtime on JVM
+    single<TranslationInferenceProvider> { JvmTranslationInferenceProvider() }
 }

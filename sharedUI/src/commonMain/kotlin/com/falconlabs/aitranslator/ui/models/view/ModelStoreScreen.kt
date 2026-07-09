@@ -38,16 +38,11 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
@@ -57,9 +52,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -92,6 +84,7 @@ import aitranslator.sharedui.generated.resources.model_store_filter_language
 import aitranslator.sharedui.generated.resources.model_store_status_installed
 import aitranslator.sharedui.generated.resources.model_store_action_pause
 import aitranslator.sharedui.generated.resources.model_store_action_delete
+import aitranslator.sharedui.generated.resources.model_store_action_redownload
 import aitranslator.sharedui.generated.resources.model_store_progress_speed
 import aitranslator.sharedui.generated.resources.model_store_back
 
@@ -208,6 +201,7 @@ internal fun ModelStoreContent(
                             onDownloadClick = { onIntent(ModelStoreIntent.DownloadModel(model.id)) },
                             onPauseClick = { onIntent(ModelStoreIntent.PauseDownload(model.id)) },
                             onDeleteClick = { onIntent(ModelStoreIntent.DeleteModel(model.id)) },
+                            onRedownloadClick = { onIntent(ModelStoreIntent.RedownloadModel(model.id)) },
                         )
                     }
                     item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -260,6 +254,7 @@ private fun ModelCard(
     onDownloadClick: () -> Unit,
     onPauseClick: () -> Unit,
     onDeleteClick: () -> Unit,
+    onRedownloadClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -377,13 +372,18 @@ private fun ModelCard(
                         }
                     }
                     isInstalled -> {
-                        OutlinedButton(
-                            onClick = onDeleteClick,
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.error
-                            )
-                        ) {
-                            Text(text = stringResource(Res.string.model_store_action_delete))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(onClick = onRedownloadClick) {
+                                Text(text = stringResource(Res.string.model_store_action_redownload))
+                            }
+                            OutlinedButton(
+                                onClick = onDeleteClick,
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.error
+                                )
+                            ) {
+                                Text(text = stringResource(Res.string.model_store_action_delete))
+                            }
                         }
                     }
                     else -> {
@@ -425,14 +425,14 @@ private fun TranslationFilters(
             .padding(horizontal = 16.dp, vertical = 6.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        LexiDropdown(
+        ModelFilterDropdown(
             label = stringResource(Res.string.model_store_filter_from),
             options = sourceLanguages,
             selected = selectedSource,
             onSelected = onSourceSelected,
             modifier = Modifier.weight(1f),
         )
-        LexiDropdown(
+        ModelFilterDropdown(
             label = stringResource(Res.string.model_store_filter_to),
             options = targetLanguages,
             selected = selectedTarget,
@@ -460,7 +460,7 @@ private fun LanguageFilter(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 6.dp),
         ) {
-            LexiDropdown(
+            ModelFilterDropdown(
                 label = stringResource(Res.string.model_store_filter_language),
                 options = languages,
                 selected = selectedLang,
@@ -473,49 +473,24 @@ private fun LanguageFilter(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LexiDropdown(
+private fun ModelFilterDropdown(
     label: String,
     options: List<String>,
     selected: String?,
     onSelected: (String?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    val displayValue = selected?.uppercase() ?: stringResource(Res.string.model_store_filter_all)
+    val allLabel = stringResource(Res.string.model_store_filter_all)
+    val displayValue = selected?.uppercase() ?: allLabel
+    val dropdownOptions = listOf(null to allLabel) + options.map { it to it.uppercase() }
 
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
+    com.falconlabs.aitranslator.ui.widgets.LexiDropdown(
+        selectedLabel = displayValue,
+        options = dropdownOptions,
+        onSelected = { onSelected(it) },
         modifier = modifier,
-    ) {
-        OutlinedTextField(
-            value = displayValue,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(label, style = MaterialTheme.typography.labelSmall) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                .fillMaxWidth(),
-            singleLine = true,
-            textStyle = MaterialTheme.typography.bodySmall,
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            DropdownMenuItem(
-                text = { Text(stringResource(Res.string.model_store_filter_all)) },
-                onClick = { onSelected(null); expanded = false },
-            )
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option.uppercase()) },
-                    onClick = { onSelected(option); expanded = false },
-                )
-            }
-        }
-    }
+        label = label,
+    )
 }
 
 /** Extract language hint from model name like "Kokoro English Female" -> "en" */

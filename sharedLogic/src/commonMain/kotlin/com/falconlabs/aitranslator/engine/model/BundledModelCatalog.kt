@@ -21,21 +21,29 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
- * Bundled model catalog providing the list of all available AI models.
- * In v1, this is a static in-memory list. Future versions will fetch
- * from a remote manifest with local caching.
+ * Model catalog loaded from bundled `model-catalog.json` resource file.
+ * Provides the list of all available AI models with download URLs.
  *
- * Download URLs point to Hugging Face model repository (ONNX exports).
+ * The JSON-driven approach allows:
+ * - Easy addition of new models without code changes
+ * - Future remote catalog updates without app updates
+ * - Clear separation of data from logic
  */
 class BundledModelCatalog : ModelCatalogProvider {
 
-    private companion object {
-        const val MB = 1_000_000L
-        const val HF_BASE = "https://huggingface.co"
-    }
+    private val catalog: List<AiModel>
+    private val catalogFlow: MutableStateFlow<List<AiModel>>
+    private val downloadFiles: Map<String, Map<String, String>> // modelId → (filename → url)
+    private val downloadUrls: Map<String, String> // modelId → primary download URL
 
-    private val catalog: List<AiModel> = buildCatalog()
-    private val catalogFlow = MutableStateFlow(catalog)
+    init {
+        val jsonText = loadCatalogJson()
+        val parsed = parseCatalog(jsonText)
+        catalog = parsed.first
+        downloadFiles = parsed.second
+        downloadUrls = downloadFiles.mapValues { (_, files) -> files.values.first() }
+        catalogFlow = MutableStateFlow(catalog)
+    }
 
     override fun getCatalog(): Flow<List<AiModel>> = catalogFlow
 
@@ -44,132 +52,173 @@ class BundledModelCatalog : ModelCatalogProvider {
     override fun getModelById(modelId: ModelId): AiModel? =
         catalog.find { it.id == modelId }
 
-    override fun getDownloadUrl(modelId: ModelId): String {
-        // Map model IDs to their Hugging Face ONNX download URLs
-        return when (modelId.id) {
-            "opus-mt-en-de" -> "$HF_BASE/Xenova/opus-mt-en-de/resolve/main/onnx/encoder_model_quantized.onnx"
-            "opus-mt-en-fr" -> "$HF_BASE/Xenova/opus-mt-en-fr/resolve/main/onnx/encoder_model_quantized.onnx"
-            "opus-mt-en-es" -> "$HF_BASE/Xenova/opus-mt-en-es/resolve/main/onnx/encoder_model_quantized.onnx"
-            "opus-mt-en-ja" -> "$HF_BASE/Xenova/opus-mt-en-ja/resolve/main/onnx/encoder_model_quantized.onnx"
-            "opus-mt-en-hi" -> "$HF_BASE/Xenova/opus-mt-en-hi/resolve/main/onnx/encoder_model_quantized.onnx"
-            "opus-mt-en-zh" -> "$HF_BASE/Xenova/opus-mt-en-zh/resolve/main/onnx/encoder_model_quantized.onnx"
-            "whisper-tiny" -> "$HF_BASE/Xenova/whisper-tiny/resolve/main/onnx/encoder_model_quantized.onnx"
-            "whisper-small" -> "$HF_BASE/Xenova/whisper-small/resolve/main/onnx/encoder_model_quantized.onnx"
-            "whisper-medium" -> "$HF_BASE/Xenova/whisper-medium/resolve/main/onnx/encoder_model_quantized.onnx"
-            "kokoro-en-female" -> "$HF_BASE/hexgrad/Kokoro-82M/resolve/main/kokoro-v1.0.onnx"
-            "piper-en-male" -> "$HF_BASE/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx"
-            "vits-ja-female" -> "$HF_BASE/Xenova/mms-tts-jpn/resolve/main/onnx/model_quantized.onnx"
-            else -> "$HF_BASE/Xenova/${modelId.id}/resolve/main/onnx/model_quantized.onnx"
+    override fun getDownloadUrl(modelId: ModelId): String =
+        downloadUrls[modelId.id] ?: ""
+
+    /**
+     * Returns all files to download for a model.
+     * Key = local filename, Value = remote URL.
+     */
+    fun getModelFiles(modelId: ModelId): Map<String, String> =
+        downloadFiles[modelId.id] ?: emptyMap()
+
+    private fun loadCatalogJson(): String {
+        // Load from classpath resource
+        val stream = this::class.java.classLoader?.getResourceAsStream("model-catalog.json")
+            ?: return "{}"
+        return stream.bufferedReader().use { it.readText() }
+    }
+
+    private fun parseCatalog(json: String): Pair<List<AiModel>, Map<String, Map<String, String>>> {
+        val models = mutableListOf<AiModel>()
+        val files = mutableMapOf<String, Map<String, String>>()
+
+        // Parse translation models
+        parseCategory(json, "translation", ModelCategory.TRANSLATION, models, files)
+        // Parse speech models
+        parseCategory(json, "speech", ModelCategory.STT, models, files)
+        // Parse voice models
+        parseCategory(json, "voice", ModelCategory.TTS, models, files)
+
+        return models to files
+    }
+
+    private fun parseCategory(
+        json: String,
+        categoryKey: String,
+        category: ModelCategory,
+        models: MutableList<AiModel>,
+        files: MutableMap<String, Map<String, String>>
+    ) {
+        // Find the category block
+        val categoryStart = json.indexOf("\"$categoryKey\"")
+        if (categoryStart == -1) return
+        val blockStart = json.indexOf("{", categoryStart + categoryKey.length + 3)
+        if (blockStart == -1) return
+
+        // Find model ID blocks within this category
+        val modelIdPattern = "\"(opus-mt-[^\"]+|whisper-[^\"]+|kokoro-[^\"]+|piper-[^\"]+|vits-[^\"]+)\"\\s*:".toRegex()
+        val matches = modelIdPattern.findAll(json, blockStart)
+
+        for (match in matches) {
+            val modelId = match.groupValues[1]
+            val modelBlockStart = json.indexOf("{", match.range.last)
+            if (modelBlockStart == -1) continue
+            val modelBlockEnd = findMatchingBrace(json, modelBlockStart)
+            if (modelBlockEnd == -1) continue
+            val modelJson = json.substring(modelBlockStart, modelBlockEnd + 1)
+
+            val model = parseModel(modelId, modelJson, category)
+            if (model != null) {
+                models.add(model)
+                val modelFiles = parseFilesToDownload(modelJson)
+                if (modelFiles.isNotEmpty()) {
+                    files[modelId] = modelFiles
+                }
+            }
         }
     }
 
-    private fun buildCatalog(): List<AiModel> = listOf(
-        // ── Translation Models ──────────────────────────────────────
-        AiModel(
-            id = ModelId("opus-mt-en-de"), name = "English → German",
-            category = ModelCategory.TRANSLATION, version = "1.0.0",
-            sizeBytes = 32 * MB,
-            languagePair = LanguagePair(LanguageCode("en"), LanguageCode("de")),
-            engineType = EngineType.OPUS_MT, qualityRating = 4.2f,
-            ramRequirementMb = 80, cpuRequirement = CpuRequirement.LOW,
-            license = "CC-BY-4.0", publisher = "Helsinki-NLP"
-        ),
-        AiModel(
-            id = ModelId("opus-mt-en-fr"), name = "English → French",
-            category = ModelCategory.TRANSLATION, version = "1.0.0",
-            sizeBytes = 34 * MB,
-            languagePair = LanguagePair(LanguageCode("en"), LanguageCode("fr")),
-            engineType = EngineType.OPUS_MT, qualityRating = 4.4f,
-            ramRequirementMb = 85, cpuRequirement = CpuRequirement.LOW,
-            license = "CC-BY-4.0", publisher = "Helsinki-NLP"
-        ),
-        AiModel(
-            id = ModelId("opus-mt-en-es"), name = "English → Spanish",
-            category = ModelCategory.TRANSLATION, version = "1.0.0",
-            sizeBytes = 33 * MB,
-            languagePair = LanguagePair(LanguageCode("en"), LanguageCode("es")),
-            engineType = EngineType.OPUS_MT, qualityRating = 4.3f,
-            ramRequirementMb = 82, cpuRequirement = CpuRequirement.LOW,
-            license = "CC-BY-4.0", publisher = "Helsinki-NLP"
-        ),
-        AiModel(
-            id = ModelId("opus-mt-en-ja"), name = "English → Japanese",
-            category = ModelCategory.TRANSLATION, version = "1.0.0",
-            sizeBytes = 38 * MB,
-            languagePair = LanguagePair(LanguageCode("en"), LanguageCode("ja")),
-            engineType = EngineType.OPUS_MT, qualityRating = 3.8f,
-            ramRequirementMb = 95, cpuRequirement = CpuRequirement.LOW,
-            license = "CC-BY-4.0", publisher = "Helsinki-NLP"
-        ),
-        AiModel(
-            id = ModelId("opus-mt-en-hi"), name = "English → Hindi",
-            category = ModelCategory.TRANSLATION, version = "1.0.0",
-            sizeBytes = 36 * MB,
-            languagePair = LanguagePair(LanguageCode("en"), LanguageCode("hi")),
-            engineType = EngineType.OPUS_MT, qualityRating = 3.9f,
-            ramRequirementMb = 90, cpuRequirement = CpuRequirement.LOW,
-            license = "CC-BY-4.0", publisher = "Helsinki-NLP"
-        ),
-        AiModel(
-            id = ModelId("opus-mt-en-zh"), name = "English → Chinese",
-            category = ModelCategory.TRANSLATION, version = "1.0.0",
-            sizeBytes = 40 * MB,
-            languagePair = LanguagePair(LanguageCode("en"), LanguageCode("zh")),
-            engineType = EngineType.OPUS_MT, qualityRating = 4.0f,
-            ramRequirementMb = 100, cpuRequirement = CpuRequirement.MEDIUM,
-            license = "CC-BY-4.0", publisher = "Helsinki-NLP"
-        ),
+    private fun parseModel(modelId: String, json: String, category: ModelCategory): AiModel? {
+        val name = when (category) {
+            ModelCategory.TRANSLATION -> {
+                val from = extractString(json, "fromLanguage") ?: return null
+                val to = extractString(json, "toLanguage") ?: return null
+                "$from → $to"
+            }
+            ModelCategory.STT -> extractString(json, "language") ?: "Unknown"
+            ModelCategory.TTS -> extractString(json, "voiceName") ?: extractString(json, "language") ?: "Unknown"
+        }
 
-        // ── STT Models (Whisper) ────────────────────────────────────
-        AiModel(
-            id = ModelId("whisper-tiny"), name = "Whisper Tiny (Multilingual)",
-            category = ModelCategory.STT, version = "1.0.0",
-            sizeBytes = 75 * MB, languagePair = null,
-            engineType = EngineType.WHISPER, qualityRating = 3.2f,
-            ramRequirementMb = 200, cpuRequirement = CpuRequirement.LOW,
-            license = "MIT", publisher = "OpenAI"
-        ),
-        AiModel(
-            id = ModelId("whisper-small"), name = "Whisper Small (Multilingual)",
-            category = ModelCategory.STT, version = "1.0.0",
-            sizeBytes = 240 * MB, languagePair = null,
-            engineType = EngineType.WHISPER, qualityRating = 4.0f,
-            ramRequirementMb = 500, cpuRequirement = CpuRequirement.MEDIUM,
-            license = "MIT", publisher = "OpenAI"
-        ),
-        AiModel(
-            id = ModelId("whisper-medium"), name = "Whisper Medium (Multilingual)",
-            category = ModelCategory.STT, version = "1.0.0",
-            sizeBytes = 750 * MB, languagePair = null,
-            engineType = EngineType.WHISPER, qualityRating = 4.6f,
-            ramRequirementMb = 1200, cpuRequirement = CpuRequirement.HIGH,
-            license = "MIT", publisher = "OpenAI"
-        ),
+        val languagePair = if (category == ModelCategory.TRANSLATION) {
+            val from = extractString(json, "fromLocale") ?: return null
+            val to = extractString(json, "toLocale") ?: return null
+            LanguagePair(LanguageCode(from), LanguageCode(to))
+        } else {
+            null
+        }
 
-        // ── TTS Models ──────────────────────────────────────────────
-        AiModel(
-            id = ModelId("kokoro-en-female"), name = "Kokoro English Female",
-            category = ModelCategory.TTS, version = "1.0.0",
-            sizeBytes = 45 * MB, languagePair = null,
-            engineType = EngineType.KOKORO, qualityRating = 4.5f,
-            ramRequirementMb = 150, cpuRequirement = CpuRequirement.LOW,
-            license = "Apache-2.0", publisher = "hexgrad"
-        ),
-        AiModel(
-            id = ModelId("piper-en-male"), name = "Piper English Male (Lessac)",
-            category = ModelCategory.TTS, version = "1.0.0",
-            sizeBytes = 62 * MB, languagePair = null,
-            engineType = EngineType.PIPER, qualityRating = 4.1f,
-            ramRequirementMb = 120, cpuRequirement = CpuRequirement.LOW,
-            license = "MIT", publisher = "rhasspy"
-        ),
-        AiModel(
-            id = ModelId("vits-ja-female"), name = "VITS Japanese Female",
-            category = ModelCategory.TTS, version = "1.0.0",
-            sizeBytes = 52 * MB, languagePair = null,
-            engineType = EngineType.VITS, qualityRating = 3.9f,
-            ramRequirementMb = 130, cpuRequirement = CpuRequirement.LOW,
-            license = "CC-BY-4.0", publisher = "Facebook MMS"
-        ),
-    )
+        return AiModel(
+            id = ModelId(modelId),
+            name = name,
+            category = category,
+            version = extractString(json, "version") ?: "1.0.0",
+            sizeBytes = extractLong(json, "sizeBytes") ?: 0L,
+            languagePair = languagePair,
+            engineType = parseEngine(extractString(json, "engine") ?: "OPUS_MT"),
+            qualityRating = extractFloat(json, "rating") ?: 3.0f,
+            ramRequirementMb = extractInt(json, "ramRequiredMb") ?: 100,
+            cpuRequirement = parseCpu(extractString(json, "cpuRequirement") ?: "LOW"),
+            license = extractString(json, "license") ?: "Unknown",
+            publisher = extractString(json, "publisher") ?: "Unknown",
+        )
+    }
+
+    private fun parseFilesToDownload(json: String): Map<String, String> {
+        val blockKey = "filesToDownload"
+        val start = json.indexOf("\"$blockKey\"")
+        if (start == -1) return emptyMap()
+        val braceStart = json.indexOf("{", start + blockKey.length)
+        if (braceStart == -1) return emptyMap()
+        val braceEnd = findMatchingBrace(json, braceStart)
+        if (braceEnd == -1) return emptyMap()
+        val block = json.substring(braceStart + 1, braceEnd)
+
+        val result = mutableMapOf<String, String>()
+        val pattern = "\"([^\"]+)\"\\s*:\\s*\"([^\"]+)\"".toRegex()
+        pattern.findAll(block).forEach { match ->
+            result[match.groupValues[1]] = match.groupValues[2]
+        }
+        return result
+    }
+
+    private fun extractString(json: String, key: String): String? {
+        val pattern = "\"$key\"\\s*:\\s*\"([^\"]+)\"".toRegex()
+        return pattern.find(json)?.groupValues?.get(1)
+    }
+
+    private fun extractLong(json: String, key: String): Long? {
+        val pattern = "\"$key\"\\s*:\\s*(\\d+)".toRegex()
+        return pattern.find(json)?.groupValues?.get(1)?.toLongOrNull()
+    }
+
+    private fun extractFloat(json: String, key: String): Float? {
+        val pattern = "\"$key\"\\s*:\\s*([\\d.]+)".toRegex()
+        return pattern.find(json)?.groupValues?.get(1)?.toFloatOrNull()
+    }
+
+    private fun extractInt(json: String, key: String): Int? {
+        val pattern = "\"$key\"\\s*:\\s*(\\d+)".toRegex()
+        return pattern.find(json)?.groupValues?.get(1)?.toIntOrNull()
+    }
+
+    private fun parseEngine(value: String): EngineType = when (value.uppercase()) {
+        "OPUS_MT" -> EngineType.OPUS_MT
+        "WHISPER" -> EngineType.WHISPER
+        "KOKORO" -> EngineType.KOKORO
+        "PIPER" -> EngineType.PIPER
+        "VITS" -> EngineType.VITS
+        else -> EngineType.OPUS_MT
+    }
+
+    private fun parseCpu(value: String): CpuRequirement = when (value.uppercase()) {
+        "LOW" -> CpuRequirement.LOW
+        "MEDIUM" -> CpuRequirement.MEDIUM
+        "HIGH" -> CpuRequirement.HIGH
+        else -> CpuRequirement.LOW
+    }
+
+    private fun findMatchingBrace(text: String, openIndex: Int): Int {
+        var depth = 0
+        for (i in openIndex until text.length) {
+            when (text[i]) {
+                '{' -> depth++
+                '}' -> {
+                    depth--
+                    if (depth == 0) return i
+                }
+            }
+        }
+        return -1
+    }
 }

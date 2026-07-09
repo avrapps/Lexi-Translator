@@ -1,0 +1,263 @@
+{
+  "version": 1,
+  "updatedAt": "2026-07-09",
+  "translation": {
+    "opus-mt-en-de": {
+      "fromLocale": "en",
+      "toLocale": "de",
+      "fromLanguage": "English",
+      "toLanguage": "German",
+      "version": "1.0.0",
+      "rating": 4.2,
+      "size": "32 MB",
+      "sizeBytes": 32000000,
+      "ramRequired": "80 MB",
+      "ramRequiredMb": 80,
+      "cpuRequirement": "LOW",
+      "description": "Compact English to German model. Good quality for everyday translation. Recommended for mobile devices.",
+      "engine": "OPUS_MT",
+      "license": "CC-BY-4.0",
+      "publisher": "Helsinki-NLP",
+      "filesToDownload": {
+        "encoder_model_quantized.onnx": "https://huggingface.co/Xenova/opus-mt-en-de/resolve/main/onnx/encoder_model_quantized.onnx",
+        "decoder_model_quantized.onnx": "https://huggingface.co/Xenova/opus-mt-en-de/resolve/main/onnx/decoder_model_quantized.onnx",
+        "tokenizer.json": "https://huggingface.co/Xenova/opus-mt-en-de/resolve/main/tokenizer.json",
+        "vocab.json": "https://huggingface.co/Xenova/opus-mt-en-de/resolve/main/vocab.json"
+      }
+    },
+    "opus-mt-en-fr": {
+      "fromLocale": "en",
+      "toLocale": "fr",
+      "fromLanguage": "English",
+      "toLanguage": "French",
+      "version": "1.0.0",
+      "rating": 4.4,
+      "size": "34 MB",
+      "sizeBytes": 34000000,
+      "ramRequired": "85 MB",
+      "ramRequiredMb": 85,
+      "cpuRequirement": "LOW",
+      "description": "High quality English to French translation. Handles formal and informal registers well.",
+      "engine": "OPUS_MT",
+      "license": "CC-BY-4.0",
+      "publisher": "Helsinki-NLP",
+      "filesToDownload": {
+        "encoder_model_quantized.onnx": "https://huggingface.co/Xenova/opus-mt-en-fr/resolve/main/onnx/encoder_model_quantized.onnx",
+        "decoder_model_quantized.onnx": "https://huggingface.co/Xenova/opus-mt-en-fr/resolve/main/onnx/decoder_model_quantized.onnx",
+        "vocab.json": "https://huggingface.co/Xenova/opus-mt-en-fr/resolve/main/vocab.json"
+      }
+    },
+    "opus-mt-en-es": {
+      "fromLocale": "en",
+      "toLocale": "es",
+      "fromLanguage": "English",
+      "toLanguage": "Spanish",
+      "version": "1.0.0",
+      "rating": 4.3,
+      "size": "33 MB",
+      "sizeBytes": 33000000,
+      "ramRequired": "82 MB",
+      "ramRequiredMb": 82,
+      "cpuRequirement": "LOW",
+      "description": "Reliable English to Spanish translation. Works well for Latin American and European Spanish.",
+      "engine": "OPUS_MT",
+      "license": "CC-BY-4.0",
+      "publisher": "Helsinki-NLP",
+      "filesToDownload": {
+        "encoder_model_quantized.onnx": "https://huggingface.co/Xenova/opus-mt-en-es/resolve/main/onnx/encoder_model_quantized.onnx",
+        "decoder_model_quantized.onnx": "https://huggingface.co/Xenova/opus-mt-en-es/resolve/main/onnx/decoder_model_quantized.onnx",
+        "vocab.json": "https://huggingface.co/Xenova/opus-mt-en-es/resolve/main/vocab.json"
+      }
+    },
+    "opus-mt-en-ja": {
+      "fromLocale": "en",
+      "toLocale": "ja",
+      "fromLanguage": "English",
+      "toLanguage": "Japanese",
+      "version": "1.0.0",
+      "rating": 3.8,
+      "size": "38 MB",
+      "sizeBytes": 38000000,
+      "ramRequired": "95 MB",
+      "ramRequiredMb": 95,
+      "cpuRequirement": "LOW",
+      "description": "English to Japanese translation. Handles kanji/hiragana output. Best for short sentences.",
+      "engine": "OPUS_MT",
+      "license": "CC-BY-4.0",
+      "publisher": "Helsinki-NLP",
+      "filesToDownload": {
+        "encoder_model_quantized.onnx": "https://huggingface.co/Xenova/opus-mt-en-ja/resolve/main/onnx/encoder_model_quantized.onnx",
+        "decoder_model_quantized.onnx": "https://huggingface.co/Xenova/opus-mt-en-ja/resolve/main/onnx/decoder_model_quantized.onnx",
+        "vocab.json": "https://huggingface.co/Xenova/opus-mt-en-ja/resolve/main/vocab.json"
+      }
+    },
+    "opus-mt-en-hi": {
+      "fromLocale": "en",
+      "toLocale": "hi",
+      "fromLanguage": "English",
+      "toLanguage": "Hindi",
+      "version": "1.0.0",
+      "rating": 3.9,
+      "size": "36 MB",
+      "sizeBytes": 36000000,
+      "ramRequired": "90 MB",
+      "ramRequiredMb": 90,
+      "cpuRequirement": "LOW",
+      "description": "English to Hindi (Devanagari). Good for conversational text and travel phrases.",
+      "engine": "OPUS_MT",
+      "license": "CC-BY-4.0",
+      "publisher": "Helsinki-NLP",
+      "filesToDownload": {
+        "encoder_model_quantized.onnx": "https://huggingface.co/Xenova/opus-mt-en-hi/resolve/main/onnx/encoder_model_quantized.onnx",
+        "decoder_model_quantized.onnx": "https://huggingface.co/Xenova/opus-mt-en-hi/resolve/main/onnx/decoder_model_quantized.onnx",
+        "vocab.json": "https://huggingface.co/Xenova/opus-mt-en-hi/resolve/main/vocab.json"
+      }
+    },
+    "opus-mt-en-zh": {
+      "fromLocale": "en",
+      "toLocale": "zh",
+      "fromLanguage": "English",
+      "toLanguage": "Chinese",
+      "version": "1.0.0",
+      "rating": 4.0,
+      "size": "40 MB",
+      "sizeBytes": 40000000,
+      "ramRequired": "100 MB",
+      "ramRequiredMb": 100,
+      "cpuRequirement": "MEDIUM",
+      "description": "English to Simplified Chinese. Larger vocabulary handles complex characters well.",
+      "engine": "OPUS_MT",
+      "license": "CC-BY-4.0",
+      "publisher": "Helsinki-NLP",
+      "filesToDownload": {
+        "encoder_model_quantized.onnx": "https://huggingface.co/Xenova/opus-mt-en-zh/resolve/main/onnx/encoder_model_quantized.onnx",
+        "decoder_model_quantized.onnx": "https://huggingface.co/Xenova/opus-mt-en-zh/resolve/main/onnx/decoder_model_quantized.onnx",
+        "vocab.json": "https://huggingface.co/Xenova/opus-mt-en-zh/resolve/main/vocab.json"
+      }
+    }
+  },
+  "speech": {
+    "whisper-tiny": {
+      "locale": "multi",
+      "language": "Multilingual",
+      "version": "1.0.0",
+      "rating": 3.2,
+      "size": "75 MB",
+      "sizeBytes": 75000000,
+      "ramRequired": "200 MB",
+      "ramRequiredMb": 200,
+      "cpuRequirement": "LOW",
+      "description": "Smallest Whisper model. Fast but less accurate. Good for quick dictation on low-end devices.",
+      "engine": "WHISPER",
+      "license": "MIT",
+      "publisher": "OpenAI",
+      "filesToDownload": {
+        "encoder_model_quantized.onnx": "https://huggingface.co/Xenova/whisper-tiny/resolve/main/onnx/encoder_model_quantized.onnx",
+        "decoder_model_quantized.onnx": "https://huggingface.co/Xenova/whisper-tiny/resolve/main/onnx/decoder_model_quantized.onnx"
+      }
+    },
+    "whisper-small": {
+      "locale": "multi",
+      "language": "Multilingual",
+      "version": "1.0.0",
+      "rating": 4.0,
+      "size": "240 MB",
+      "sizeBytes": 240000000,
+      "ramRequired": "500 MB",
+      "ramRequiredMb": 500,
+      "cpuRequirement": "MEDIUM",
+      "description": "Balanced Whisper model. Good accuracy for most languages. Recommended for general use.",
+      "engine": "WHISPER",
+      "license": "MIT",
+      "publisher": "OpenAI",
+      "filesToDownload": {
+        "encoder_model_quantized.onnx": "https://huggingface.co/Xenova/whisper-small/resolve/main/onnx/encoder_model_quantized.onnx",
+        "decoder_model_quantized.onnx": "https://huggingface.co/Xenova/whisper-small/resolve/main/onnx/decoder_model_quantized.onnx"
+      }
+    },
+    "whisper-medium": {
+      "locale": "multi",
+      "language": "Multilingual",
+      "version": "1.0.0",
+      "rating": 4.6,
+      "size": "750 MB",
+      "sizeBytes": 750000000,
+      "ramRequired": "1200 MB",
+      "ramRequiredMb": 1200,
+      "cpuRequirement": "HIGH",
+      "description": "High accuracy Whisper model. Best transcription quality. Requires powerful device with 4+ GB RAM.",
+      "engine": "WHISPER",
+      "license": "MIT",
+      "publisher": "OpenAI",
+      "filesToDownload": {
+        "encoder_model_quantized.onnx": "https://huggingface.co/Xenova/whisper-medium/resolve/main/onnx/encoder_model_quantized.onnx",
+        "decoder_model_quantized.onnx": "https://huggingface.co/Xenova/whisper-medium/resolve/main/onnx/decoder_model_quantized.onnx"
+      }
+    }
+  },
+  "voice": {
+    "kokoro-en-female": {
+      "locale": "en",
+      "language": "English",
+      "voiceName": "Kokoro Female",
+      "voiceGender": "female",
+      "sampleRate": 24000,
+      "version": "1.0.0",
+      "rating": 4.5,
+      "size": "45 MB",
+      "sizeBytes": 45000000,
+      "ramRequired": "150 MB",
+      "ramRequiredMb": 150,
+      "cpuRequirement": "LOW",
+      "description": "Natural female English voice. High fidelity 24kHz. Best emotional range among compact models.",
+      "engine": "KOKORO",
+      "license": "Apache-2.0",
+      "publisher": "hexgrad",
+      "filesToDownload": {
+        "model.onnx": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/main/kokoro-v1.0.onnx"
+      }
+    },
+    "piper-en-male": {
+      "locale": "en",
+      "language": "English",
+      "voiceName": "Lessac Male",
+      "voiceGender": "male",
+      "sampleRate": 22050,
+      "version": "1.0.0",
+      "rating": 4.1,
+      "size": "62 MB",
+      "sizeBytes": 62000000,
+      "ramRequired": "120 MB",
+      "ramRequiredMb": 120,
+      "cpuRequirement": "LOW",
+      "description": "Clear male English voice. Medium quality. Fast synthesis for audiobook reading.",
+      "engine": "PIPER",
+      "license": "MIT",
+      "publisher": "rhasspy",
+      "filesToDownload": {
+        "model.onnx": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx"
+      }
+    },
+    "vits-ja-female": {
+      "locale": "ja",
+      "language": "Japanese",
+      "voiceName": "MMS Japanese Female",
+      "voiceGender": "female",
+      "sampleRate": 16000,
+      "version": "1.0.0",
+      "rating": 3.9,
+      "size": "52 MB",
+      "sizeBytes": 52000000,
+      "ramRequired": "130 MB",
+      "ramRequiredMb": 130,
+      "cpuRequirement": "LOW",
+      "description": "Japanese female voice using Meta MMS VITS. Natural prosody for short to medium sentences.",
+      "engine": "VITS",
+      "license": "CC-BY-4.0",
+      "publisher": "Facebook MMS",
+      "filesToDownload": {
+        "model.onnx": "https://huggingface.co/Xenova/mms-tts-jpn/resolve/main/onnx/model_quantized.onnx"
+      }
+    }
+  }
+}

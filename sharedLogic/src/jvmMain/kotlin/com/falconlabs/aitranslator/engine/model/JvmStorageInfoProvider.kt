@@ -30,6 +30,9 @@ class JvmStorageInfoProvider : StorageInfoProvider {
     }
 
     override fun getModelFilePath(modelId: ModelId): String {
-        return File(modelsDir, "${modelId.id}.onnx").absolutePath
+        // Store each model in its own directory
+        val modelDir = File(modelsDir, modelId.id)
+        modelDir.mkdirs()
+        return File(modelDir, "encoder_model_quantized.onnx").absolutePath
     }
 }

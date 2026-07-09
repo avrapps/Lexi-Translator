@@ -41,8 +41,24 @@
     <string name="model_store_status_installed">Installed</string>
     <string name="model_store_action_pause">Pause</string>
     <string name="model_store_action_delete">Delete</string>
+    <string name="model_store_action_redownload">Redownload</string>
     <string name="model_store_progress_speed">%1$d MB/s</string>
     <string name="model_store_back">Back</string>
+
+    <!-- Text Translation -->
+    <string name="translate_input_placeholder">Enter text to translate…</string>
+    <string name="translate_action_translate">Translate</string>
+    <string name="translate_action_swap">Swap</string>
+    <string name="translate_action_clear">Clear</string>
+    <string name="translate_action_copy">Copy</string>
+    <string name="translate_result_label">Translation</string>
+    <string name="translate_confidence_high">High</string>
+    <string name="translate_confidence_medium">Medium</string>
+    <string name="translate_confidence_low">Low</string>
+    <string name="translate_alternatives_label">Alternatives</string>
+    <string name="translate_dictionary_label">Dictionary</string>
+    <string name="translate_transliteration_label">Transliteration</string>
+    <string name="translate_char_count">%1$d / %2$d</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
