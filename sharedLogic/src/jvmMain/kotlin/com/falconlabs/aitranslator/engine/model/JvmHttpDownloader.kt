@@ -10,14 +10,15 @@
 
 package com.falconlabs.aitranslator.engine.model
 
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+
 import java.io.File
 import java.io.RandomAccessFile
 import java.net.HttpURLConnection
 import java.net.URL
-import kotlin.coroutines.coroutineContext
 
 /**
  * JVM (Desktop) implementation of [HttpDownloader] using java.net.HttpURLConnection.
@@ -89,7 +90,16 @@ class JvmHttpDownloader : HttpDownloader {
 
                     val now = System.currentTimeMillis()
                     if (now - lastProgressUpdate >= 50L || bytesDownloaded >= totalBytes) {
-                        onProgress(bytesDownloaded, if (totalBytes == Long.MAX_VALUE) bytesDownloaded + 1 else totalBytes)
+                        onProgress(
+                            bytesDownloaded,
+                            if (totalBytes ==
+                                Long.MAX_VALUE
+                            ) {
+                                bytesDownloaded + 1
+                            } else {
+                                totalBytes
+                            }
+                        )
                         lastProgressUpdate = now
                     }
                 }

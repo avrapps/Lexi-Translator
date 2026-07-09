@@ -35,13 +35,11 @@ object ModelRecommendationEngine {
         catalog: List<AiModel>,
         deviceProfile: DeviceProfile,
         limit: Int = 10
-    ): List<ModelRecommendation> {
-        return catalog
-            .map { model -> ModelRecommendation(model, computeScore(model, deviceProfile)) }
-            .filter { it.compatibilityScore > 0.2f } // Exclude clearly incompatible
-            .sortedByDescending { it.compatibilityScore }
-            .take(limit)
-    }
+    ): List<ModelRecommendation> = catalog
+        .map { model -> ModelRecommendation(model, computeScore(model, deviceProfile)) }
+        .filter { it.compatibilityScore > 0.2f } // Exclude clearly incompatible
+        .sortedByDescending { it.compatibilityScore }
+        .take(limit)
 
     private fun computeScore(model: AiModel, device: DeviceProfile): Float {
         val ramScore = computeRamScore(model.ramRequirementMb, device.availableRamMb)
@@ -55,11 +53,11 @@ object ModelRecommendationEngine {
         if (availableMb <= 0) return 0f
         val ratio = availableMb.toFloat() / requiredMb.toFloat()
         return when {
-            ratio >= 4f -> 1.0f   // Plenty of headroom
-            ratio >= 2f -> 0.9f   // Comfortable
+            ratio >= 4f -> 1.0f // Plenty of headroom
+            ratio >= 2f -> 0.9f // Comfortable
             ratio >= 1.5f -> 0.7f // Tight but workable
-            ratio >= 1f -> 0.5f   // Barely fits
-            else -> 0.1f          // Insufficient RAM
+            ratio >= 1f -> 0.5f // Barely fits
+            else -> 0.1f // Insufficient RAM
         }
     }
 
@@ -76,7 +74,11 @@ object ModelRecommendationEngine {
         }
     }
 
-    private fun computeCpuScore(requirement: CpuRequirement, cores: Int, hasNnapi: Boolean): Float {
+    private fun computeCpuScore(
+        requirement: CpuRequirement,
+        cores: Int,
+        hasNnapi: Boolean
+    ): Float {
         val baseScore = when (requirement) {
             CpuRequirement.LOW -> 1.0f
             CpuRequirement.MEDIUM -> if (cores >= 4) 0.9f else 0.5f

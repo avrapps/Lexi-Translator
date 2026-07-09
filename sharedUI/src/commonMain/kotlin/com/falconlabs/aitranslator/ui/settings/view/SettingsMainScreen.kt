@@ -40,20 +40,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.jetbrains.compose.resources.stringResource
+
 import aitranslator.sharedui.generated.resources.Res
-import aitranslator.sharedui.generated.resources.settings_title
-import aitranslator.sharedui.generated.resources.settings_models
 import aitranslator.sharedui.generated.resources.settings_ai
 import aitranslator.sharedui.generated.resources.settings_audio
-import aitranslator.sharedui.generated.resources.settings_privacy
-import aitranslator.sharedui.generated.resources.settings_display
 import aitranslator.sharedui.generated.resources.settings_battery
+import aitranslator.sharedui.generated.resources.settings_display
 import aitranslator.sharedui.generated.resources.settings_download
+import aitranslator.sharedui.generated.resources.settings_models
+import aitranslator.sharedui.generated.resources.settings_privacy
+import aitranslator.sharedui.generated.resources.settings_title
+import org.jetbrains.compose.resources.stringResource
 
 /** Identifiers for each settings menu row. */
 internal enum class SettingsItem {
-    MODELS, AI, AUDIO, PRIVACY, DISPLAY, BATTERY, DOWNLOAD
+    MODELS,
+    AI,
+    AUDIO,
+    PRIVACY,
+    DISPLAY,
+    BATTERY,
+    DOWNLOAD
 }
 
 /**
@@ -64,10 +71,7 @@ internal enum class SettingsItem {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsMainScreen(
-    onNavigateToModelStore: () -> Unit = {},
-    modifier: Modifier = Modifier,
-) {
+fun SettingsMainScreen(onNavigateToModelStore: () -> Unit = {}, modifier: Modifier = Modifier,) {
     Scaffold(
         topBar = {
             TopAppBar(

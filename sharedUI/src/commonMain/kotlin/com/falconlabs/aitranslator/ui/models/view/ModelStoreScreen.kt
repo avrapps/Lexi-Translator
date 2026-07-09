@@ -57,6 +57,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+
 import com.falconlabs.aitranslator.domain.model.AiModel
 import com.falconlabs.aitranslator.domain.model.DownloadProgress
 import com.falconlabs.aitranslator.domain.model.ModelCategory
@@ -66,27 +67,27 @@ import com.falconlabs.aitranslator.ui.models.viewmodel.ModelStoreState
 import com.falconlabs.aitranslator.ui.models.viewmodel.ModelStoreTab
 import com.falconlabs.aitranslator.ui.models.viewmodel.ModelStoreViewModel
 import com.falconlabs.aitranslator.ui.widgets.StorageUsageCard
-import org.jetbrains.compose.resources.stringResource
+
 import aitranslator.sharedui.generated.resources.Res
-import aitranslator.sharedui.generated.resources.model_store_title
-import aitranslator.sharedui.generated.resources.model_store_tab_translation
-import aitranslator.sharedui.generated.resources.model_store_tab_stt
-import aitranslator.sharedui.generated.resources.model_store_tab_tts
-import aitranslator.sharedui.generated.resources.model_store_size_label
-import aitranslator.sharedui.generated.resources.model_store_ram_label
-import aitranslator.sharedui.generated.resources.model_store_engine_label
+import aitranslator.sharedui.generated.resources.model_store_action_delete
+import aitranslator.sharedui.generated.resources.model_store_action_pause
+import aitranslator.sharedui.generated.resources.model_store_action_redownload
 import aitranslator.sharedui.generated.resources.model_store_download_button
-import aitranslator.sharedui.generated.resources.model_store_multilingual
+import aitranslator.sharedui.generated.resources.model_store_engine_label
 import aitranslator.sharedui.generated.resources.model_store_filter_all
 import aitranslator.sharedui.generated.resources.model_store_filter_from
-import aitranslator.sharedui.generated.resources.model_store_filter_to
 import aitranslator.sharedui.generated.resources.model_store_filter_language
-import aitranslator.sharedui.generated.resources.model_store_status_installed
-import aitranslator.sharedui.generated.resources.model_store_action_pause
-import aitranslator.sharedui.generated.resources.model_store_action_delete
-import aitranslator.sharedui.generated.resources.model_store_action_redownload
+import aitranslator.sharedui.generated.resources.model_store_filter_to
+import aitranslator.sharedui.generated.resources.model_store_multilingual
 import aitranslator.sharedui.generated.resources.model_store_progress_speed
-import aitranslator.sharedui.generated.resources.model_store_back
+import aitranslator.sharedui.generated.resources.model_store_ram_label
+import aitranslator.sharedui.generated.resources.model_store_size_label
+import aitranslator.sharedui.generated.resources.model_store_status_installed
+import aitranslator.sharedui.generated.resources.model_store_tab_stt
+import aitranslator.sharedui.generated.resources.model_store_tab_translation
+import aitranslator.sharedui.generated.resources.model_store_tab_tts
+import aitranslator.sharedui.generated.resources.model_store_title
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Model Store screen displaying downloadable AI models across
@@ -97,7 +98,12 @@ fun ModelStoreScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit = {},
     onModelClick: (ModelId) -> Unit = {},
-    viewModel: ModelStoreViewModel = viewModel { ModelStoreViewModel(org.koin.java.KoinJavaComponent.get(com.falconlabs.aitranslator.engine.model.ModelManager::class.java)) },
+    viewModel: ModelStoreViewModel =
+        viewModel {
+            ModelStoreViewModel(
+                org.koin.java.KoinJavaComponent.get(com.falconlabs.aitranslator.engine.model.ModelManager::class.java)
+            )
+        },
 ) {
     val state by viewModel.state.collectAsState()
     ModelStoreContent(
@@ -261,8 +267,11 @@ private fun ModelCard(
         modifier = modifier.fillMaxWidth().clickable { onCardClick() },
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
-            containerColor = if (isInstalled) MaterialTheme.colorScheme.secondaryContainer
-            else MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = if (isInstalled) {
+                MaterialTheme.colorScheme.secondaryContainer
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant
+            },
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
@@ -325,8 +334,13 @@ private fun ModelCard(
             if (downloadProgress != null) {
                 Spacer(modifier = Modifier.height(8.dp))
                 val fraction = if (downloadProgress.totalBytes > 0L) {
-                    (downloadProgress.bytesDownloaded.toFloat() / downloadProgress.totalBytes.toFloat()).coerceIn(0f, 1f)
-                } else 0f
+                    (downloadProgress.bytesDownloaded.toFloat() / downloadProgress.totalBytes.toFloat()).coerceIn(
+                        0f,
+                        1f
+                    )
+                } else {
+                    0f
+                }
                 LinearProgressIndicator(
                     progress = { fraction },
                     modifier = Modifier.fillMaxWidth().height(6.dp),
@@ -339,7 +353,9 @@ private fun ModelCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(
-                        text = "${formatSize(downloadProgress.bytesDownloaded)} / ${formatSize(downloadProgress.totalBytes)}",
+                        text = "${formatSize(
+                            downloadProgress.bytesDownloaded
+                        )} / ${formatSize(downloadProgress.totalBytes)}",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -496,14 +512,18 @@ private fun ModelFilterDropdown(
 /** Extract language hint from model name like "Kokoro English Female" -> "en" */
 private fun extractLangFromName(name: String): String? {
     val langMap = mapOf(
-        "english" to "en", "german" to "de", "french" to "fr",
-        "spanish" to "es", "japanese" to "ja", "hindi" to "hi",
-        "chinese" to "zh", "multilingual" to "multi"
+        "english" to "en",
+        "german" to "de",
+        "french" to "fr",
+        "spanish" to "es",
+        "japanese" to "ja",
+        "hindi" to "hi",
+        "chinese" to "zh",
+        "multilingual" to "multi"
     )
     val lower = name.lowercase()
     return langMap.entries.firstOrNull { lower.contains(it.key) }?.value
 }
-
 
 /** Format language pair display (e.g., "en → de") or "Multilingual" for STT. */
 @Composable

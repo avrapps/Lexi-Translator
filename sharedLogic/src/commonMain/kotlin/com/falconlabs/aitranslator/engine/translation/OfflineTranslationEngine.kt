@@ -15,11 +15,11 @@ import com.falconlabs.aitranslator.domain.model.DictionaryEntry
 import com.falconlabs.aitranslator.domain.model.Formality
 import com.falconlabs.aitranslator.domain.model.LanguageCode
 import com.falconlabs.aitranslator.domain.model.LanguageDetectionResult
-import com.falconlabs.aitranslator.domain.model.ModelCategory
 import com.falconlabs.aitranslator.domain.model.TranslationConfidence
 import com.falconlabs.aitranslator.domain.model.TranslationRequest
 import com.falconlabs.aitranslator.domain.model.TranslationResult
 import com.falconlabs.aitranslator.util.currentTimeMillis
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -113,9 +113,8 @@ class OfflineTranslationEngine(
         )
     }
 
-    override fun isModelAvailable(source: LanguageCode, target: LanguageCode): Boolean {
-        return inferenceProvider.hasModel(source, target)
-    }
+    override fun isModelAvailable(source: LanguageCode, target: LanguageCode): Boolean =
+        inferenceProvider.hasModel(source, target)
 
     /**
      * Runs ONNX inference via the platform-specific provider.
@@ -136,8 +135,11 @@ class OfflineTranslationEngine(
             // Translate sentence by sentence, join with spaces
             val translated = sentences.mapNotNull { sentence ->
                 val trimmed = sentence.trim()
-                if (trimmed.isEmpty()) null
-                else inferenceProvider.runInference(trimmed, source, target)
+                if (trimmed.isEmpty()) {
+                    null
+                } else {
+                    inferenceProvider.runInference(trimmed, source, target)
+                }
             }
             if (translated.isEmpty()) throw TranslationException.ModelNotInstalled(source.code to target.code)
             translated.joinToString(" ")
@@ -170,12 +172,10 @@ class OfflineTranslationEngine(
         return listOf("[${target.code} alt] $text").take(5)
     }
 
-    private fun computeConfidence(inputLength: Int, durationMs: Long): TranslationConfidence {
-        return when {
-            inputLength < 5 -> TranslationConfidence.LOW
-            durationMs < 200 -> TranslationConfidence.HIGH
-            else -> TranslationConfidence.MEDIUM
-        }
+    private fun computeConfidence(inputLength: Int, durationMs: Long): TranslationConfidence = when {
+        inputLength < 5 -> TranslationConfidence.LOW
+        durationMs < 200 -> TranslationConfidence.HIGH
+        else -> TranslationConfidence.MEDIUM
     }
 
     private fun transliterate(text: String, targetLang: LanguageCode): String {

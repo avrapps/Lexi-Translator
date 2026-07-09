@@ -11,6 +11,7 @@
 package com.falconlabs.aitranslator.engine.model
 
 import com.falconlabs.aitranslator.domain.model.ModelId
+
 import java.io.File
 
 /**
@@ -25,9 +26,7 @@ class JvmStorageInfoProvider : StorageInfoProvider {
         dir
     }
 
-    override fun getAvailableStorageBytes(): Long {
-        return modelsDir.usableSpace
-    }
+    override fun getAvailableStorageBytes(): Long = modelsDir.usableSpace
 
     override fun getModelFilePath(modelId: ModelId): String {
         // Store each model in its own directory

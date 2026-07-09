@@ -31,11 +31,12 @@ import com.falconlabs.aitranslator.engine.model.DownloadManager
 import com.falconlabs.aitranslator.engine.model.ModelCatalogProvider
 import com.falconlabs.aitranslator.engine.model.ModelManager
 import com.falconlabs.aitranslator.engine.model.ModelManagerImpl
+
+import org.koin.dsl.module
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-
-import org.koin.dsl.module
 
 /**
  * Koin module providing data-layer dependencies (repositories, DAOs, database).

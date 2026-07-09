@@ -17,6 +17,7 @@ import com.falconlabs.aitranslator.domain.model.LanguageCode
 import com.falconlabs.aitranslator.domain.model.LanguagePair
 import com.falconlabs.aitranslator.domain.model.ModelCategory
 import com.falconlabs.aitranslator.domain.model.ModelId
+
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -49,18 +50,15 @@ class BundledModelCatalog : ModelCatalogProvider {
 
     override fun getCatalogSnapshot(): List<AiModel> = catalog
 
-    override fun getModelById(modelId: ModelId): AiModel? =
-        catalog.find { it.id == modelId }
+    override fun getModelById(modelId: ModelId): AiModel? = catalog.find { it.id == modelId }
 
-    override fun getDownloadUrl(modelId: ModelId): String =
-        downloadUrls[modelId.id] ?: ""
+    override fun getDownloadUrl(modelId: ModelId): String = downloadUrls[modelId.id] ?: ""
 
     /**
      * Returns all files to download for a model.
      * Key = local filename, Value = remote URL.
      */
-    fun getModelFiles(modelId: ModelId): Map<String, String> =
-        downloadFiles[modelId.id] ?: emptyMap()
+    fun getModelFiles(modelId: ModelId): Map<String, String> = downloadFiles[modelId.id] ?: emptyMap()
 
     private fun loadCatalogJson(): String {
         // Load from classpath resource
@@ -119,7 +117,11 @@ class BundledModelCatalog : ModelCatalogProvider {
         }
     }
 
-    private fun parseModel(modelId: String, json: String, category: ModelCategory): AiModel? {
+    private fun parseModel(
+        modelId: String,
+        json: String,
+        category: ModelCategory
+    ): AiModel? {
         val name = when (category) {
             ModelCategory.TRANSLATION -> {
                 val from = extractString(json, "fromLanguage") ?: return null

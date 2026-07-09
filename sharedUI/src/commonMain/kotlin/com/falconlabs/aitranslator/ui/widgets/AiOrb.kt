@@ -35,14 +35,20 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.dp
-import kotlin.math.PI
+
 import kotlin.math.sin
 
 /**
  * Visual states for the AI Orb (Requirement 2.1).
  */
 enum class OrbState {
-    IDLE, LISTENING, THINKING, SPEAKING, DOWNLOADING, ERROR, LOW_BATTERY
+    IDLE,
+    LISTENING,
+    THINKING,
+    SPEAKING,
+    DOWNLOADING,
+    ERROR,
+    LOW_BATTERY
 }
 
 /**
@@ -88,12 +94,12 @@ fun AiOrb(
     // Color animation based on state
     val primaryColor by animateColorAsState(
         targetValue = when (state) {
-            OrbState.IDLE -> Color(0xFF7C3AED)        // Purple
-            OrbState.LISTENING -> Color(0xFF22D3EE)   // Cyan
-            OrbState.THINKING -> Color(0xFFD2BBFF)    // Light purple
-            OrbState.SPEAKING -> Color(0xFF4EDEA3)    // Green
+            OrbState.IDLE -> Color(0xFF7C3AED) // Purple
+            OrbState.LISTENING -> Color(0xFF22D3EE) // Cyan
+            OrbState.THINKING -> Color(0xFFD2BBFF) // Light purple
+            OrbState.SPEAKING -> Color(0xFF4EDEA3) // Green
             OrbState.DOWNLOADING -> Color(0xFF4CD7F6) // Blue
-            OrbState.ERROR -> Color(0xFFFFB4AB)       // Error red
+            OrbState.ERROR -> Color(0xFFFFB4AB) // Error red
             OrbState.LOW_BATTERY -> Color(0xFFFEBC2E) // Warning yellow
         },
         animationSpec = tween(500),
@@ -199,7 +205,8 @@ private fun drawWaveformBars(
 
     for (i in 0 until barCount) {
         val x = center.x + (i - barCount / 2) * barWidth * 3f
-        val height = maxBarHeight * (0.3f + 0.7f * sin((i * 1.2f + audioLevel * 10f).toDouble()).toFloat().coerceIn(0f, 1f))
+        val height =
+            maxBarHeight * (0.3f + 0.7f * sin((i * 1.2f + audioLevel * 10f).toDouble()).toFloat().coerceIn(0f, 1f))
         scope.drawRoundRect(
             color = color.copy(alpha = 0.7f),
             topLeft = Offset(x - barWidth / 2, center.y - height / 2),

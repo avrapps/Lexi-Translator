@@ -26,6 +26,7 @@ import com.falconlabs.aitranslator.domain.model.DownloadState
 import com.falconlabs.aitranslator.domain.model.InstalledModel
 import com.falconlabs.aitranslator.domain.model.ModelCategory
 import com.falconlabs.aitranslator.domain.model.ModelId
+
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -60,7 +61,11 @@ interface ModelRepository {
     suspend fun insertDownload(modelId: ModelId, totalBytes: Long)
 
     /** Updates download progress bytes and state for an active download. */
-    suspend fun updateDownloadProgress(modelId: ModelId, bytesDownloaded: Long, state: DownloadState)
+    suspend fun updateDownloadProgress(
+        modelId: ModelId,
+        bytesDownloaded: Long,
+        state: DownloadState
+    )
 
     /** Removes a download record (completed or cancelled). */
     suspend fun deleteDownload(modelId: ModelId)

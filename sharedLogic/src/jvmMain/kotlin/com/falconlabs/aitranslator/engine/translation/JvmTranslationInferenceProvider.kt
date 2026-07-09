@@ -11,6 +11,7 @@
 package com.falconlabs.aitranslator.engine.translation
 
 import com.falconlabs.aitranslator.domain.model.LanguageCode
+
 import java.io.File
 
 /**
@@ -29,7 +30,11 @@ class JvmTranslationInferenceProvider : TranslationInferenceProvider {
         const val HF_BASE = "https://huggingface.co"
     }
 
-    override suspend fun runInference(text: String, source: LanguageCode, target: LanguageCode): String? {
+    override suspend fun runInference(
+        text: String,
+        source: LanguageCode,
+        target: LanguageCode
+    ): String? {
         val modelId = "opus-mt-${source.code}-${target.code}"
         val modelDir = File(modelsBaseDir, modelId)
 

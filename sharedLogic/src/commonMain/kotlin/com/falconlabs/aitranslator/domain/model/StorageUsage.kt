@@ -25,8 +25,4 @@ package com.falconlabs.aitranslator.domain.model
  * Aggregated storage usage information for installed models.
  * Supports Requirement 6.6 (storage usage tracking and display).
  */
-data class StorageUsage(
-    val totalUsedBytes: Long,
-    val availableBytes: Long,
-    val perModelUsage: Map<ModelId, Long>
-)
+data class StorageUsage(val totalUsedBytes: Long, val availableBytes: Long, val perModelUsage: Map<ModelId, Long>)

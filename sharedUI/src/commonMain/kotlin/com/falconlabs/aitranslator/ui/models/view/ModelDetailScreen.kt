@@ -54,10 +54,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+
 import com.falconlabs.aitranslator.domain.model.AiModel
 import com.falconlabs.aitranslator.domain.model.CpuRequirement
 import com.falconlabs.aitranslator.domain.model.ModelCategory
-import com.falconlabs.aitranslator.domain.model.ModelId
 import com.falconlabs.aitranslator.ui.models.viewmodel.MockModelData
 import com.falconlabs.aitranslator.ui.widgets.ModelStorageEntry
 import com.falconlabs.aitranslator.ui.widgets.StorageUsageCard
@@ -365,12 +365,10 @@ private fun formatQualityStars(rating: Float): String {
 }
 
 /** Format category enum to display string. */
-private fun formatCategory(category: ModelCategory): String {
-    return when (category) {
-        ModelCategory.TRANSLATION -> "Translation"
-        ModelCategory.STT -> "Speech-to-Text"
-        ModelCategory.TTS -> "Text-to-Speech"
-    }
+private fun formatCategory(category: ModelCategory): String = when (category) {
+    ModelCategory.TRANSLATION -> "Translation"
+    ModelCategory.STT -> "Speech-to-Text"
+    ModelCategory.TTS -> "Text-to-Speech"
 }
 
 /** Format languages display. */
@@ -384,10 +382,8 @@ private fun formatLanguages(model: AiModel): String {
 }
 
 /** Format CPU requirement to display string. */
-private fun formatCpuRequirement(cpu: CpuRequirement): String {
-    return when (cpu) {
-        CpuRequirement.LOW -> "Low"
-        CpuRequirement.MEDIUM -> "Medium"
-        CpuRequirement.HIGH -> "High"
-    }
+private fun formatCpuRequirement(cpu: CpuRequirement): String = when (cpu) {
+    CpuRequirement.LOW -> "Low"
+    CpuRequirement.MEDIUM -> "Medium"
+    CpuRequirement.HIGH -> "High"
 }

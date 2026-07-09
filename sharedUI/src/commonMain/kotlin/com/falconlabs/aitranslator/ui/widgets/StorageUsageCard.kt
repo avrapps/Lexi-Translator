@@ -36,16 +36,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+
 import com.falconlabs.aitranslator.domain.model.ModelId
 
 /**
  * Data class representing per-model storage usage for display.
  */
-data class ModelStorageEntry(
-    val modelId: ModelId,
-    val name: String,
-    val sizeBytes: Long,
-)
+data class ModelStorageEntry(val modelId: ModelId, val name: String, val sizeBytes: Long,)
 
 /**
  * Mock storage data for UI development.
@@ -180,15 +177,13 @@ fun StorageUsageCard(
 }
 
 /** Format bytes to human-readable string (MB or GB). */
-private fun formatBytes(bytes: Long): String {
-    return when {
-        bytes >= 1_000_000_000L -> {
-            val whole = (bytes / 100_000_000).toInt()
-            "${whole / 10}.${whole % 10} GB"
-        }
-        else -> {
-            val mb = bytes / 1_000_000
-            "$mb MB"
-        }
+private fun formatBytes(bytes: Long): String = when {
+    bytes >= 1_000_000_000L -> {
+        val whole = (bytes / 100_000_000).toInt()
+        "${whole / 10}.${whole % 10} GB"
+    }
+    else -> {
+        val mb = bytes / 1_000_000
+        "$mb MB"
     }
 }

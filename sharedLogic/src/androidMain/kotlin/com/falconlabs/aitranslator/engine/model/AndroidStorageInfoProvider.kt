@@ -11,16 +11,16 @@
 package com.falconlabs.aitranslator.engine.model
 
 import android.content.Context
+
 import com.falconlabs.aitranslator.domain.model.ModelId
+
 import java.io.File
 
 /**
  * Android implementation of [StorageInfoProvider].
  * Stores models in the app's internal files directory under models/.
  */
-class AndroidStorageInfoProvider(
-    private val context: Context
-) : StorageInfoProvider {
+class AndroidStorageInfoProvider(private val context: Context) : StorageInfoProvider {
 
     private val modelsDir: File by lazy {
         val dir = File(context.filesDir, "models")
@@ -28,11 +28,7 @@ class AndroidStorageInfoProvider(
         dir
     }
 
-    override fun getAvailableStorageBytes(): Long {
-        return modelsDir.usableSpace
-    }
+    override fun getAvailableStorageBytes(): Long = modelsDir.usableSpace
 
-    override fun getModelFilePath(modelId: ModelId): String {
-        return File(modelsDir, "${modelId.id}.onnx").absolutePath
-    }
+    override fun getModelFilePath(modelId: ModelId): String = File(modelsDir, "${modelId.id}.onnx").absolutePath
 }

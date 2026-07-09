@@ -42,6 +42,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+
 import com.falconlabs.aitranslator.domain.model.LanguageCode
 import com.falconlabs.aitranslator.domain.model.TranslationConfidence
 import com.falconlabs.aitranslator.engine.translation.InputValidator
@@ -54,18 +55,20 @@ import com.falconlabs.aitranslator.ui.widgets.LexiDropdown
 import com.falconlabs.aitranslator.ui.widgets.PlatformCapabilities
 import com.falconlabs.aitranslator.ui.widgets.PlatformFilePicker
 import com.falconlabs.aitranslator.ui.widgets.TranslationInputBox
-import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
+
 import aitranslator.sharedui.generated.resources.Res
 import aitranslator.sharedui.generated.resources.translate_action_translate
-import aitranslator.sharedui.generated.resources.translate_result_label
-import aitranslator.sharedui.generated.resources.translate_confidence_high
-import aitranslator.sharedui.generated.resources.translate_confidence_medium
-import aitranslator.sharedui.generated.resources.translate_confidence_low
 import aitranslator.sharedui.generated.resources.translate_alternatives_label
+import aitranslator.sharedui.generated.resources.translate_confidence_high
+import aitranslator.sharedui.generated.resources.translate_confidence_low
+import aitranslator.sharedui.generated.resources.translate_confidence_medium
 import aitranslator.sharedui.generated.resources.translate_dictionary_label
-import aitranslator.sharedui.generated.resources.translate_transliteration_label
 import aitranslator.sharedui.generated.resources.translate_input_placeholder
+import aitranslator.sharedui.generated.resources.translate_result_label
+import aitranslator.sharedui.generated.resources.translate_transliteration_label
+import org.jetbrains.compose.resources.stringResource
+
+import kotlinx.coroutines.launch
 
 /** Supported source/target languages for the dropdown selectors. */
 private val SUPPORTED_LANGUAGES = listOf(
@@ -319,9 +322,12 @@ private fun CompactInfoCard(label: String, content: String) {
 @Composable
 private fun ConfidenceBadge(confidence: TranslationConfidence) {
     val (text, color) = when (confidence) {
-        TranslationConfidence.HIGH -> stringResource(Res.string.translate_confidence_high) to MaterialTheme.colorScheme.primary
-        TranslationConfidence.MEDIUM -> stringResource(Res.string.translate_confidence_medium) to MaterialTheme.colorScheme.tertiary
-        TranslationConfidence.LOW -> stringResource(Res.string.translate_confidence_low) to MaterialTheme.colorScheme.error
+        TranslationConfidence.HIGH -> stringResource(Res.string.translate_confidence_high) to
+            MaterialTheme.colorScheme.primary
+        TranslationConfidence.MEDIUM -> stringResource(Res.string.translate_confidence_medium) to
+            MaterialTheme.colorScheme.tertiary
+        TranslationConfidence.LOW -> stringResource(Res.string.translate_confidence_low) to
+            MaterialTheme.colorScheme.error
     }
     Text(text = "● $text", style = MaterialTheme.typography.labelSmall, color = color)
 }
@@ -346,10 +352,7 @@ private fun buildInputActions(
 
 /** Output box toolbar: copy, share */
 @Composable
-private fun buildOutputActions(
-    onCopy: () -> Unit,
-    onShare: () -> Unit,
-): List<InputAction> {
+private fun buildOutputActions(onCopy: () -> Unit, onShare: () -> Unit,): List<InputAction> {
     val actions = mutableListOf<InputAction>()
     actions.add(InputAction(icon = "Copy", contentDescription = "Copy to clipboard", onClick = onCopy))
     if (PlatformCapabilities.supportsShareSheet) {

@@ -19,56 +19,60 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+
 import com.falconlabs.aitranslator.domain.model.ConversationCard
+import com.falconlabs.aitranslator.domain.model.LanguageCode
 import com.falconlabs.aitranslator.domain.model.TranslationConfidence
 import com.falconlabs.aitranslator.engine.translation.TranslationEngine
 import com.falconlabs.aitranslator.ui.interpreter.viewmodel.CaptionSize
-import com.falconlabs.aitranslator.ui.interpreter.viewmodel.InteractionMode
 import com.falconlabs.aitranslator.ui.interpreter.viewmodel.LiveInterpreterIntent
 import com.falconlabs.aitranslator.ui.interpreter.viewmodel.LiveInterpreterState
 import com.falconlabs.aitranslator.ui.interpreter.viewmodel.LiveInterpreterViewModel
 import com.falconlabs.aitranslator.ui.widgets.AiOrb
 import com.falconlabs.aitranslator.ui.widgets.OrbState
-import org.jetbrains.compose.resources.stringResource
-import aitranslator.sharedui.generated.resources.Res
-import aitranslator.sharedui.generated.resources.screen_live_interpreter
 
-/**
- * Live Interpreter screen with AI Orb, conversation cards, and mode controls.
- */
+/** Supported languages for the interpreter dropdowns. */
+private val INTERPRETER_LANGUAGES = listOf(
+    LanguageCode("en") to "English",
+    LanguageCode("de") to "German",
+    LanguageCode("fr") to "French",
+    LanguageCode("es") to "Spanish",
+    LanguageCode("ja") to "Japanese",
+    LanguageCode("hi") to "Hindi",
+    LanguageCode("zh") to "Chinese",
+)
+
 @Composable
 fun LiveInterpreterScreen(
     modifier: Modifier = Modifier,
+    onNavigateToModels: (() -> Unit)? = null,
     viewModel: LiveInterpreterViewModel = viewModel {
         LiveInterpreterViewModel(
-            org.koin.java.KoinJavaComponent.get(TranslationEngine::class.java)
+            org.koin.java.KoinJavaComponent.get(TranslationEngine::class.java),
+            org.koin.java.KoinJavaComponent.get(com.falconlabs.aitranslator.engine.stt.SttEngine::class.java),
+            org.koin.java.KoinJavaComponent.get(
+                com.falconlabs.aitranslator.data.repository.ModelRepository::class.java
+            ),
         )
     },
 ) {
@@ -76,6 +80,7 @@ fun LiveInterpreterScreen(
     LiveInterpreterContent(
         state = state,
         onIntent = viewModel::onIntent,
+        onNavigateToModels = onNavigateToModels,
         modifier = modifier,
     )
 }
@@ -84,6 +89,7 @@ fun LiveInterpreterScreen(
 internal fun LiveInterpreterContent(
     state: LiveInterpreterState,
     onIntent: (LiveInterpreterIntent) -> Unit,
+    onNavigateToModels: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(modifier = modifier) { innerPadding ->
@@ -94,51 +100,65 @@ internal fun LiveInterpreterContent(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // ─── Language pair row ───────────────────────────────────────
+            // ─── Language dropdowns (same style as Translate) ────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                FilledTonalButton(onClick = {}, modifier = Modifier.weight(1f)) {
-                    Text(state.sourceLang.code.uppercase(), style = MaterialTheme.typography.labelLarge)
-                }
+                com.falconlabs.aitranslator.ui.widgets.LexiDropdown(
+                    selectedLabel =
+                    INTERPRETER_LANGUAGES.find { it.first.code == state.sourceLang.code }?.second
+                        ?: state.sourceLang.code,
+                    options = INTERPRETER_LANGUAGES.map { (code, label) -> code to label },
+                    onSelected = { onIntent(LiveInterpreterIntent.SelectSourceLang(it)) },
+                    modifier = Modifier.weight(1f),
+                    label = "From",
+                )
                 FilledTonalIconButton(
                     onClick = { onIntent(LiveInterpreterIntent.SwapLanguages) },
                     modifier = Modifier.size(40.dp),
                 ) {
-                    Text("⇄", style = MaterialTheme.typography.titleMedium)
+                    Text("\u21C4", style = MaterialTheme.typography.titleMedium)
                 }
-                FilledTonalButton(onClick = {}, modifier = Modifier.weight(1f)) {
-                    Text(state.targetLang.code.uppercase(), style = MaterialTheme.typography.labelLarge)
-                }
+                com.falconlabs.aitranslator.ui.widgets.LexiDropdown(
+                    selectedLabel =
+                    INTERPRETER_LANGUAGES.find { it.first.code == state.targetLang.code }?.second
+                        ?: state.targetLang.code,
+                    options = INTERPRETER_LANGUAGES.map { (code, label) -> code to label },
+                    onSelected = { onIntent(LiveInterpreterIntent.SelectTargetLang(it)) },
+                    modifier = Modifier.weight(1f),
+                    label = "To",
+                )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // ─── Mode chips ─────────────────────────────────────────────
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
-            ) {
-                FilterChip(
-                    selected = state.isAutoSpeak,
-                    onClick = { onIntent(LiveInterpreterIntent.ToggleAutoSpeak) },
-                    label = { Text("Auto-Speak", style = MaterialTheme.typography.labelSmall) },
-                )
-                FilterChip(
-                    selected = state.isDualLanguage,
-                    onClick = { onIntent(LiveInterpreterIntent.ToggleDualLanguage) },
-                    label = { Text("Dual Lang", style = MaterialTheme.typography.labelSmall) },
-                )
-                FilterChip(
-                    selected = state.interactionMode == InteractionMode.PUSH_TO_TALK,
-                    onClick = { onIntent(LiveInterpreterIntent.TogglePushToTalk) },
-                    label = { Text("Push-to-Talk", style = MaterialTheme.typography.labelSmall) },
-                )
+            // ─── Missing models warning ─────────────────────────────────
+            if (state.missingModels.isNotEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    ),
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        state.missingModels.forEach { msg ->
+                            Text(
+                                text = "\u26A0 $msg",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                modifier = Modifier.padding(vertical = 2.dp),
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(onClick = { onNavigateToModels?.invoke() }) {
+                            Text("Download Models")
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
 
             // ─── AI Orb ─────────────────────────────────────────────────
             AiOrb(
@@ -158,25 +178,22 @@ internal fun LiveInterpreterContent(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // ─── Listen / Simulate input ────────────────────────────────
-            if (state.interactionMode == InteractionMode.PUSH_TO_TALK) {
-                Button(
-                    onClick = {
-                        if (state.orbState == OrbState.LISTENING) {
-                            onIntent(LiveInterpreterIntent.PushToTalkReleased)
-                        } else {
-                            onIntent(LiveInterpreterIntent.PushToTalkPressed)
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(if (state.orbState == OrbState.LISTENING) "Release to Translate" else "Hold to Speak")
-                }
-            } else {
-                // Continuous mode: simulate input box (until real STT is wired)
-                SimulateInputRow(onSubmit = { onIntent(LiveInterpreterIntent.SimulateInput(it)) })
+            // ─── Single button: Start Listening / Stop & Translate ──────
+            val isListening = state.orbState == OrbState.LISTENING
+            Button(
+                onClick = {
+                    if (isListening) {
+                        onIntent(LiveInterpreterIntent.StopListening)
+                    } else {
+                        onIntent(LiveInterpreterIntent.StartListening)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = state.orbState != OrbState.THINKING && state.missingModels.isEmpty(),
+            ) {
+                Text(if (isListening) "Stop & Translate" else "Start Listening")
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -219,74 +236,35 @@ internal fun LiveInterpreterContent(
 }
 
 @Composable
-private fun SimulateInputRow(onSubmit: (String) -> Unit) {
-    var text by remember { mutableStateOf("") }
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        OutlinedTextField(
-            value = text,
-            onValueChange = { text = it },
-            modifier = Modifier.weight(1f),
-            placeholder = { Text("Type to simulate speech...") },
-            singleLine = true,
-            textStyle = MaterialTheme.typography.bodySmall,
-        )
-        Button(
-            onClick = {
-                if (text.isNotBlank()) { onSubmit(text); text = "" }
-            },
-            enabled = text.isNotBlank(),
-        ) {
-            Text("→")
-        }
-    }
-}
-
-@Composable
-private fun ConversationCardItem(
-    card: ConversationCard,
-    captionSize: CaptionSize,
-) {
+private fun ConversationCardItem(card: ConversationCard, captionSize: CaptionSize) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            // Source text
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(
-                    text = card.sourceLanguage.code.uppercase(),
+                    card.sourceLanguage.code.uppercase(),
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.primary
                 )
                 ConfidenceDot(card.confidence)
             }
             Text(
-                text = card.sourceText,
+                card.sourceText,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(6.dp))
-            // Translated text
+            Spacer(Modifier.height(6.dp))
             Text(
-                text = card.targetLanguage.code.uppercase(),
+                card.targetLanguage.code.uppercase(),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.secondary,
+                color = MaterialTheme.colorScheme.secondary
             )
             Text(
-                text = card.translatedText,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontSize = captionSize.sp.sp
-                ),
-                color = MaterialTheme.colorScheme.onSurface,
+                card.translatedText,
+                style = MaterialTheme.typography.bodyLarge.copy(fontSize = captionSize.sp.sp),
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -299,5 +277,5 @@ private fun ConfidenceDot(confidence: TranslationConfidence) {
         TranslationConfidence.MEDIUM -> MaterialTheme.colorScheme.tertiary
         TranslationConfidence.LOW -> MaterialTheme.colorScheme.error
     }
-    Text("●", color = color, style = MaterialTheme.typography.labelSmall)
+    Text("\u25CF", color = color, style = MaterialTheme.typography.labelSmall)
 }

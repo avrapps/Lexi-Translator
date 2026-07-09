@@ -12,6 +12,7 @@ package com.falconlabs.aitranslator.ui.widgets
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
@@ -26,15 +27,21 @@ actual object PlatformFilePicker {
             try {
                 val dialog = FileDialog(null as Frame?, "Select text file", FileDialog.LOAD)
                 dialog.setFilenameFilter { _, name ->
-                    name.endsWith(".txt") || name.endsWith(".md") ||
-                        name.endsWith(".csv") || name.endsWith(".text")
+                    name.endsWith(".txt") ||
+                        name.endsWith(".md") ||
+                        name.endsWith(".csv") ||
+                        name.endsWith(".text")
                 }
                 dialog.isVisible = true
 
                 val dir = dialog.directory
                 val file = dialog.file
                 if (dir != null && file != null) {
-                    result = try { File(dir, file).readText(Charsets.UTF_8) } catch (_: Exception) { null }
+                    result = try {
+                        File(dir, file).readText(Charsets.UTF_8)
+                    } catch (_: Exception) {
+                        null
+                    }
                 }
             } finally {
                 latch.countDown()

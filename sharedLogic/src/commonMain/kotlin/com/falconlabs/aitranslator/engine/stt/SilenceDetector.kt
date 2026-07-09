@@ -19,10 +19,7 @@ import com.falconlabs.aitranslator.util.currentTimeMillis
  *
  * Supports Requirement 2.4 (silence detection after 1.5s pause).
  */
-class SilenceDetector(
-    private val thresholdMs: Long = 1500L,
-    private val amplitudeThreshold: Float = 0.05f,
-) {
+class SilenceDetector(private val thresholdMs: Long = 1500L, private val amplitudeThreshold: Float = 0.05f,) {
     private var silenceStartMs: Long = 0L
     private var isSilent: Boolean = false
     private var hasFiredForCurrentSilence: Boolean = false

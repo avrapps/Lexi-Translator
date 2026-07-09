@@ -12,6 +12,7 @@ package com.falconlabs.aitranslator.engine.translation
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+
 import java.io.File
 
 /**
@@ -136,7 +137,10 @@ class MarianTokenizer(private val modelDir: String) {
 
         // Find the vocab array: handle "vocab" : [ or "vocab":[ with whitespace
         val vocabKeyIdx = content.indexOf("\"vocab\"")
-        if (vocabKeyIdx == -1) { println("[MarianTokenizer] ERROR: vocab key not found"); return }
+        if (vocabKeyIdx == -1) {
+            println("[MarianTokenizer] ERROR: vocab key not found")
+            return
+        }
         // Skip past "vocab" and any whitespace/colon to find the first [
         var scanPos = vocabKeyIdx + 7 // skip past "vocab"
         while (scanPos < content.length && content[scanPos] in " \t\n\r:") scanPos++
@@ -156,7 +160,10 @@ class MarianTokenizer(private val modelDir: String) {
             // Find closing quote (handle escapes)
             var quoteEnd = quoteStart + 1
             while (quoteEnd < content.length) {
-                if (content[quoteEnd] == '\\') { quoteEnd += 2; continue }
+                if (content[quoteEnd] == '\\') {
+                    quoteEnd += 2
+                    continue
+                }
                 if (content[quoteEnd] == '"') break
                 quoteEnd++
             }
@@ -225,19 +232,43 @@ class MarianTokenizer(private val modelDir: String) {
                         if (i + 5 < raw.length) {
                             val hex = raw.substring(i + 2, i + 6)
                             val cp = hex.toIntOrNull(16)
-                            if (cp != null) { sb.append(cp.toChar()); i += 6; continue }
+                            if (cp != null) {
+                                sb.append(cp.toChar())
+                                i += 6
+                                continue
+                            }
                         }
-                        sb.append(raw[i]); i++
+                        sb.append(raw[i])
+                        i++
                     }
-                    '\\' -> { sb.append('\\'); i += 2 }
-                    '"' -> { sb.append('"'); i += 2 }
-                    'n' -> { sb.append('\n'); i += 2 }
-                    't' -> { sb.append('\t'); i += 2 }
-                    '/' -> { sb.append('/'); i += 2 }
-                    else -> { sb.append(raw[i]); i++ }
+                    '\\' -> {
+                        sb.append('\\')
+                        i += 2
+                    }
+                    '"' -> {
+                        sb.append('"')
+                        i += 2
+                    }
+                    'n' -> {
+                        sb.append('\n')
+                        i += 2
+                    }
+                    't' -> {
+                        sb.append('\t')
+                        i += 2
+                    }
+                    '/' -> {
+                        sb.append('/')
+                        i += 2
+                    }
+                    else -> {
+                        sb.append(raw[i])
+                        i++
+                    }
                 }
             } else {
-                sb.append(raw[i]); i++
+                sb.append(raw[i])
+                i++
             }
         }
         return sb.toString()

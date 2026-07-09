@@ -35,10 +35,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
-import org.jetbrains.compose.resources.stringResource
+
 import aitranslator.sharedui.generated.resources.Res
-import aitranslator.sharedui.generated.resources.translate_input_placeholder
 import aitranslator.sharedui.generated.resources.translate_char_count
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Action for the input/output box toolbar.

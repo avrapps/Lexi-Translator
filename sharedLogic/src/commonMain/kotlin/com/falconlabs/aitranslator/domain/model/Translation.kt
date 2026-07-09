@@ -58,11 +58,7 @@ data class TranslationResult(
  * Result of a language detection operation (Requirement 3.3, 3.4).
  * Confidence is 0.0-1.0; below threshold the user must pick manually.
  */
-data class LanguageDetectionResult(
-    val detectedLang: LanguageCode?,
-    val confidence: Float,
-    val isConfident: Boolean,
-)
+data class LanguageDetectionResult(val detectedLang: LanguageCode?, val confidence: Float, val isConfident: Boolean,)
 
 /**
  * Rich dictionary entry displayed for short inputs (≤5 words) (Requirement 3.9).

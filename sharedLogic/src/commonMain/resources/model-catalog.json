@@ -153,7 +153,8 @@
       "publisher": "OpenAI",
       "filesToDownload": {
         "encoder_model_quantized.onnx": "https://huggingface.co/Xenova/whisper-tiny/resolve/main/onnx/encoder_model_quantized.onnx",
-        "decoder_model_quantized.onnx": "https://huggingface.co/Xenova/whisper-tiny/resolve/main/onnx/decoder_model_quantized.onnx"
+        "decoder_model_quantized.onnx": "https://huggingface.co/Xenova/whisper-tiny/resolve/main/onnx/decoder_model_quantized.onnx",
+        "tokenizer.json": "https://huggingface.co/Xenova/whisper-tiny/resolve/main/tokenizer.json"
       }
     },
     "whisper-small": {
@@ -214,7 +215,7 @@
       "license": "Apache-2.0",
       "publisher": "hexgrad",
       "filesToDownload": {
-        "model.onnx": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/main/kokoro-v1.0.onnx"
+        "model.onnx": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/onnx/model.onnx"
       }
     },
     "piper-en-male": {
@@ -239,24 +240,24 @@
       }
     },
     "vits-ja-female": {
-      "locale": "ja",
-      "language": "Japanese",
-      "voiceName": "MMS Japanese Female",
-      "voiceGender": "female",
-      "sampleRate": 16000,
+      "locale": "de",
+      "language": "German",
+      "voiceName": "Thorsten (German Male)",
+      "voiceGender": "male",
+      "sampleRate": 22050,
       "version": "1.0.0",
-      "rating": 3.9,
-      "size": "52 MB",
-      "sizeBytes": 52000000,
-      "ramRequired": "130 MB",
-      "ramRequiredMb": 130,
+      "rating": 4.1,
+      "size": "63 MB",
+      "sizeBytes": 63000000,
+      "ramRequired": "120 MB",
+      "ramRequiredMb": 120,
       "cpuRequirement": "LOW",
-      "description": "Japanese female voice using Meta MMS VITS. Natural prosody for short to medium sentences.",
-      "engine": "VITS",
-      "license": "CC-BY-4.0",
-      "publisher": "Facebook MMS",
+      "description": "Natural German male voice. Good quality for translation output and document reading.",
+      "engine": "PIPER",
+      "license": "MIT",
+      "publisher": "rhasspy",
       "filesToDownload": {
-        "model.onnx": "https://huggingface.co/Xenova/mms-tts-jpn/resolve/main/onnx/model_quantized.onnx"
+        "model.onnx": "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/thorsten/medium/de_DE-thorsten-medium.onnx"
       }
     }
   }

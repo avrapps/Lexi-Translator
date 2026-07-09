@@ -10,14 +10,15 @@
 
 package com.falconlabs.aitranslator.engine.model
 
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+
 import java.io.File
 import java.io.RandomAccessFile
 import java.net.HttpURLConnection
 import java.net.URL
-import kotlin.coroutines.coroutineContext
 
 /**
  * Android implementation of [HttpDownloader] using java.net.HttpURLConnection.

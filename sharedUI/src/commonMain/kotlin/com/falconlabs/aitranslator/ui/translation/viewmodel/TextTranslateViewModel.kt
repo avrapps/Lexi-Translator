@@ -12,6 +12,7 @@ package com.falconlabs.aitranslator.ui.translation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+
 import com.falconlabs.aitranslator.domain.model.DictionaryEntry
 import com.falconlabs.aitranslator.domain.model.LanguageCode
 import com.falconlabs.aitranslator.domain.model.TranslationConfidence
@@ -19,6 +20,7 @@ import com.falconlabs.aitranslator.domain.model.TranslationMode
 import com.falconlabs.aitranslator.domain.model.TranslationRequest
 import com.falconlabs.aitranslator.engine.translation.InputValidator
 import com.falconlabs.aitranslator.engine.translation.TranslationEngine
+
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -62,9 +64,7 @@ sealed interface TextTranslateIntent {
  * MVI ViewModel for the Text Translate screen.
  * Orchestrates translation requests via [TranslationEngine].
  */
-class TextTranslateViewModel(
-    private val translationEngine: TranslationEngine,
-) : ViewModel() {
+class TextTranslateViewModel(private val translationEngine: TranslationEngine,) : ViewModel() {
 
     private val _state = MutableStateFlow(TextTranslateState())
     val state: StateFlow<TextTranslateState> = _state.asStateFlow()
@@ -197,20 +197,18 @@ class TextTranslateViewModel(
     }
 
     /** Cleans up common punctuation artifacts from sentence-by-sentence translation. */
-    private fun cleanPunctuation(text: String): String {
-        return text
-            // Remove duplicate punctuation with spaces: ". ." → "."
-            .replace(Regex("""([.!?]) +\1"""), "$1")
-            // Remove space before punctuation: "wahr? ." → "wahr?"
-            .replace(Regex(""" +([.!?,;:])"""), "$1")
-            // Remove double punctuation: ".." → "." but keep "..." (ellipsis)
-            .replace(Regex("""([.!?])\1(?!\1)"""), "$1")
-            // Fix punctuation followed immediately by letter without space: ".Das" → ". Das"
-            .replace(Regex("""([.!?])([A-ZÄÖÜ])"""), "$1 $2")
-            // Collapse multiple horizontal spaces (NOT newlines)
-            .replace(Regex("""[^\S\n]{2,}"""), " ")
-            // Collapse multiple newlines to single newline
-            .replace(Regex("""\n{2,}"""), "\n")
-            .trim()
-    }
+    private fun cleanPunctuation(text: String): String = text
+        // Remove duplicate punctuation with spaces: ". ." → "."
+        .replace(Regex("""([.!?]) +\1"""), "$1")
+        // Remove space before punctuation: "wahr? ." → "wahr?"
+        .replace(Regex(""" +([.!?,;:])"""), "$1")
+        // Remove double punctuation: ".." → "." but keep "..." (ellipsis)
+        .replace(Regex("""([.!?])\1(?!\1)"""), "$1")
+        // Fix punctuation followed immediately by letter without space: ".Das" → ". Das"
+        .replace(Regex("""([.!?])([A-ZÄÖÜ])"""), "$1 $2")
+        // Collapse multiple horizontal spaces (NOT newlines)
+        .replace(Regex("""[^\S\n]{2,}"""), " ")
+        // Collapse multiple newlines to single newline
+        .replace(Regex("""\n{2,}"""), "\n")
+        .trim()
 }

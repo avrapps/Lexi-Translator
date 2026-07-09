@@ -11,6 +11,7 @@
 package com.falconlabs.aitranslator.engine.stt
 
 import com.falconlabs.aitranslator.domain.model.LanguageCode
+
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -47,10 +48,7 @@ data class SttConfig(
  */
 sealed interface SttEvent {
     /** Partial (in-progress) transcription — updates frequently during speech. */
-    data class PartialTranscription(
-        val text: String,
-        val detectedLanguage: LanguageCode? = null,
-    ) : SttEvent
+    data class PartialTranscription(val text: String, val detectedLanguage: LanguageCode? = null,) : SttEvent
 
     /** Final transcription after silence detection completes a segment. */
     data class FinalTranscription(

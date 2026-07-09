@@ -12,16 +12,20 @@ package com.falconlabs.aitranslator.ui.interpreter.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+
 import com.falconlabs.aitranslator.domain.model.ConversationCard
 import com.falconlabs.aitranslator.domain.model.LanguageCode
-import com.falconlabs.aitranslator.domain.model.TranslationConfidence
 import com.falconlabs.aitranslator.domain.model.TranslationRequest
+import com.falconlabs.aitranslator.engine.stt.SttConfig
+import com.falconlabs.aitranslator.engine.stt.SttEngine
 import com.falconlabs.aitranslator.engine.translation.TranslationEngine
 import com.falconlabs.aitranslator.ui.widgets.OrbState
 import com.falconlabs.aitranslator.util.currentTimeMillis
+
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -45,6 +49,12 @@ data class LiveInterpreterState(
     val captionSize: CaptionSize = CaptionSize.MEDIUM,
     val isFullScreen: Boolean = false,
     val error: String? = null,
+    // Missing model messages
+    val missingModels: List<String> = emptyList(),
+    // Legacy prompt fields (kept for compat)
+    val showModelPrompt: Boolean = false,
+    val modelPromptType: String = "",
+    val modelPromptInfo: String = "",
 )
 
 /** User intents for the Live Interpreter. */
@@ -61,9 +71,11 @@ sealed interface LiveInterpreterIntent {
     data object ToggleFullScreen : LiveInterpreterIntent
     data object ClearConversations : LiveInterpreterIntent
     data object DismissError : LiveInterpreterIntent
+
     // Push-to-talk events
     data object PushToTalkPressed : LiveInterpreterIntent
     data object PushToTalkReleased : LiveInterpreterIntent
+
     // Simulate speech input (for testing without mic)
     data class SimulateInput(val text: String) : LiveInterpreterIntent
 }
@@ -71,43 +83,169 @@ sealed interface LiveInterpreterIntent {
 /**
  * MVI ViewModel for the Live Interpreter screen.
  * Manages STT listening, translation, and conversation history.
+ * Checks model availability and prompts user to download if needed.
  */
 class LiveInterpreterViewModel(
     private val translationEngine: TranslationEngine,
+    private val sttEngine: SttEngine,
+    private val modelRepository: com.falconlabs.aitranslator.data.repository.ModelRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LiveInterpreterState())
     val state: StateFlow<LiveInterpreterState> = _state.asStateFlow()
 
     private var conversationCounter = 0
+    private var listeningJob: kotlinx.coroutines.Job? = null
+
+    init {
+        checkModelAvailability()
+    }
 
     fun onIntent(intent: LiveInterpreterIntent) {
         when (intent) {
             is LiveInterpreterIntent.StartListening -> startListening()
             is LiveInterpreterIntent.StopListening -> stopListening()
-            is LiveInterpreterIntent.SwapLanguages -> swapLanguages()
-            is LiveInterpreterIntent.SelectSourceLang -> _state.update { it.copy(sourceLang = intent.lang) }
-            is LiveInterpreterIntent.SelectTargetLang -> _state.update { it.copy(targetLang = intent.lang) }
+            is LiveInterpreterIntent.SwapLanguages -> {
+                swapLanguages()
+                checkModelAvailability()
+            }
+            is LiveInterpreterIntent.SelectSourceLang -> {
+                _state.update { it.copy(sourceLang = intent.lang) }
+                checkModelAvailability()
+            }
+            is LiveInterpreterIntent.SelectTargetLang -> {
+                _state.update { it.copy(targetLang = intent.lang) }
+                checkModelAvailability()
+            }
             is LiveInterpreterIntent.ToggleAutoSpeak -> _state.update { it.copy(isAutoSpeak = !it.isAutoSpeak) }
-            is LiveInterpreterIntent.ToggleDualLanguage -> _state.update { it.copy(isDualLanguage = !it.isDualLanguage) }
+            is LiveInterpreterIntent.ToggleDualLanguage -> _state.update {
+                it.copy(isDualLanguage = !it.isDualLanguage)
+            }
             is LiveInterpreterIntent.TogglePushToTalk -> togglePushToTalk()
             is LiveInterpreterIntent.SetCaptionSize -> _state.update { it.copy(captionSize = intent.size) }
             is LiveInterpreterIntent.ToggleFullScreen -> _state.update { it.copy(isFullScreen = !it.isFullScreen) }
             is LiveInterpreterIntent.ClearConversations -> _state.update { it.copy(conversations = emptyList()) }
-            is LiveInterpreterIntent.DismissError -> _state.update { it.copy(error = null) }
+            is LiveInterpreterIntent.DismissError -> _state.update { it.copy(error = null, showModelPrompt = false) }
             is LiveInterpreterIntent.PushToTalkPressed -> startListening()
             is LiveInterpreterIntent.PushToTalkReleased -> finalizeAndTranslate()
             is LiveInterpreterIntent.SimulateInput -> simulateInput(intent.text)
         }
     }
 
+    /** Checks which models are missing and updates state.missingModels. */
+    private fun checkModelAvailability() {
+        viewModelScope.launch {
+            val current = _state.value
+            val missing = mutableListOf<String>()
+
+            // Get all installed model IDs
+            val installedModels = modelRepository.getAllInstalled().first()
+            val installedIds = installedModels.map { it.id.id }.toSet()
+
+            // Check STT model (any whisper model)
+            val hasWhisper = installedIds.any { it.startsWith("whisper-") }
+            if (!hasWhisper) {
+                missing.add("You do not have ${getLanguageName(current.sourceLang)} STT (Whisper) model.")
+            }
+
+            // Check Translation model
+            if (!translationEngine.isModelAvailable(current.sourceLang, current.targetLang)) {
+                missing.add(
+                    "You do not have ${getLanguageName(
+                        current.sourceLang
+                    )}\u2192${getLanguageName(current.targetLang)} Translation model."
+                )
+            }
+
+            // Check TTS model (any voice model for the target language)
+            val hasTts = installedIds.any {
+                it.startsWith("kokoro-") || it.startsWith("piper-") || it.startsWith("vits-")
+            }
+            if (!hasTts) {
+                missing.add("You do not have ${getLanguageName(current.targetLang)} TTS (Kokoro/Piper) model.")
+            }
+
+            _state.update { it.copy(missingModels = missing) }
+        }
+    }
+
+    private fun getLanguageName(code: LanguageCode): String = when (code.code) {
+        "en" -> "English"
+        "de" -> "German"
+        "fr" -> "French"
+        "es" -> "Spanish"
+        "ja" -> "Japanese"
+        "hi" -> "Hindi"
+        "zh" -> "Chinese"
+        else -> code.code.uppercase()
+    }
+
     private fun startListening() {
+        val current = _state.value
+
+        // Don't start if models are missing
+        if (current.missingModels.isNotEmpty()) return
+
         _state.update { it.copy(orbState = OrbState.LISTENING, partialTranscription = "", error = null) }
-        // TODO: Wire real SttEngine.startListening() when Whisper model is integrated
+
+        // Start real STT listening
+        listeningJob = viewModelScope.launch {
+            val config = SttConfig(
+                primaryLanguage = current.sourceLang,
+                secondaryLanguage = if (current.isDualLanguage) current.targetLang else null,
+                enableDualLanguage = current.isDualLanguage,
+            )
+            sttEngine.startListening(config).collect { event ->
+                handleSttEvent(event)
+            }
+        }
+    }
+
+    private fun handleSttEvent(event: com.falconlabs.aitranslator.engine.stt.SttEvent) {
+        when (event) {
+            is com.falconlabs.aitranslator.engine.stt.SttEvent.AudioLevel -> {
+                _state.update { it.copy(audioLevel = event.amplitude) }
+            }
+            is com.falconlabs.aitranslator.engine.stt.SttEvent.PartialTranscription -> {
+                _state.update { it.copy(partialTranscription = event.text) }
+            }
+            is com.falconlabs.aitranslator.engine.stt.SttEvent.FinalTranscription -> {
+                // Transcribe + translate this segment, but KEEP LISTENING
+                val text = event.text
+                println("[Interpreter] FinalTranscription: '$text'")
+                if (text.isNotBlank() && !text.startsWith("[") && !text.startsWith("(")) {
+                    println("[Interpreter] Translating: '$text'")
+                    translateAndAddCard(text)
+                } else {
+                    println("[Interpreter] SKIPPED (blank or placeholder)")
+                }
+                // Return orb to LISTENING — mic stays active for next segment
+                _state.update { it.copy(orbState = OrbState.LISTENING, partialTranscription = "") }
+            }
+            is com.falconlabs.aitranslator.engine.stt.SttEvent.SilenceDetected -> {
+                println("[Interpreter] SilenceDetected")
+                _state.update { it.copy(orbState = OrbState.THINKING) }
+            }
+            is com.falconlabs.aitranslator.engine.stt.SttEvent.Error -> {
+                _state.update { it.copy(orbState = OrbState.ERROR, error = event.error.message) }
+                listeningJob?.cancel()
+                listeningJob = null
+            }
+        }
     }
 
     private fun stopListening() {
-        _state.update { it.copy(orbState = OrbState.IDLE, partialTranscription = "") }
+        // Stop mic completely
+        listeningJob?.cancel()
+        listeningJob = null
+        viewModelScope.launch { sttEngine.stopListening() }
+        // Transition to SPEAKING — play TTS of translated text (Wave 6 will add real audio)
+        _state.update { it.copy(orbState = OrbState.SPEAKING, partialTranscription = "", audioLevel = 0f) }
+        // TODO: Play TTS audio of all conversation cards’ translated text
+        viewModelScope.launch {
+            kotlinx.coroutines.delay(2000)
+            _state.update { it.copy(orbState = OrbState.IDLE) }
+        }
     }
 
     private fun swapLanguages() {
@@ -116,8 +254,11 @@ class LiveInterpreterViewModel(
 
     private fun togglePushToTalk() {
         _state.update { current ->
-            val newMode = if (current.interactionMode == InteractionMode.CONTINUOUS)
-                InteractionMode.PUSH_TO_TALK else InteractionMode.CONTINUOUS
+            val newMode = if (current.interactionMode == InteractionMode.CONTINUOUS) {
+                InteractionMode.PUSH_TO_TALK
+            } else {
+                InteractionMode.CONTINUOUS
+            }
             current.copy(interactionMode = newMode, orbState = OrbState.IDLE)
         }
     }
@@ -138,6 +279,7 @@ class LiveInterpreterViewModel(
     }
 
     private fun translateAndAddCard(sourceText: String) {
+        println("[Interpreter] translateAndAddCard: '$sourceText'")
         val current = _state.value
         _state.update { it.copy(orbState = OrbState.THINKING) }
 

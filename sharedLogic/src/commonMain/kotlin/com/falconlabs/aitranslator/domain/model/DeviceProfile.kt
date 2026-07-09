@@ -37,7 +37,4 @@ data class DeviceProfile(
  * A model paired with its compatibility score for the current device.
  * Score ranges from 0.0 (incompatible) to 1.0 (fully compatible).
  */
-data class ModelRecommendation(
-    val model: AiModel,
-    val compatibilityScore: Float
-)
+data class ModelRecommendation(val model: AiModel, val compatibilityScore: Float)

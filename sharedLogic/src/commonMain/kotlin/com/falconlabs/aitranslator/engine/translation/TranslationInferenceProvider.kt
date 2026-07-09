@@ -26,7 +26,11 @@ interface TranslationInferenceProvider {
      * @param target Target language code.
      * @return Translated text, or null if model is not available.
      */
-    suspend fun runInference(text: String, source: LanguageCode, target: LanguageCode): String?
+    suspend fun runInference(
+        text: String,
+        source: LanguageCode,
+        target: LanguageCode
+    ): String?
 
     /**
      * Returns true if the model files for the given language pair are available on disk.

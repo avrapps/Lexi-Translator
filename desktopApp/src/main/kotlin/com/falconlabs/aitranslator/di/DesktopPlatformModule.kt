@@ -31,6 +31,8 @@ import com.falconlabs.aitranslator.engine.model.JvmDownloadFileManager
 import com.falconlabs.aitranslator.engine.model.JvmHttpDownloader
 import com.falconlabs.aitranslator.engine.model.JvmStorageInfoProvider
 import com.falconlabs.aitranslator.engine.model.StorageInfoProvider
+import com.falconlabs.aitranslator.engine.stt.AudioCaptureProvider
+import com.falconlabs.aitranslator.engine.stt.JvmAudioCaptureProvider
 import com.falconlabs.aitranslator.engine.translation.JvmTranslationInferenceProvider
 import com.falconlabs.aitranslator.engine.translation.TranslationInferenceProvider
 
@@ -55,4 +57,12 @@ val desktopPlatformModule = module {
 
     // Translation inference — ONNX Runtime on JVM
     single<TranslationInferenceProvider> { JvmTranslationInferenceProvider() }
+
+    // Audio capture — javax.sound.sampled for microphone input
+    single<AudioCaptureProvider> { JvmAudioCaptureProvider() }
+
+    // Whisper STT inference — ONNX Runtime on JVM
+    single<com.falconlabs.aitranslator.engine.stt.WhisperInferenceProvider> {
+        com.falconlabs.aitranslator.engine.stt.JvmWhisperInferenceProvider()
+    }
 }

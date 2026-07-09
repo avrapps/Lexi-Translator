@@ -11,8 +11,10 @@
 package com.falconlabs.aitranslator.engine.model
 
 import com.falconlabs.aitranslator.domain.model.IntegrityResult
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+
 import java.io.File
 import java.security.MessageDigest
 

@@ -13,8 +13,10 @@ package com.falconlabs.aitranslator.engine.translation
 import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+
 import java.io.File
 import java.nio.LongBuffer
 
@@ -28,9 +30,7 @@ import java.nio.LongBuffer
  *
  * This implementation uses greedy decoding (argmax at each step).
  */
-class OnnxTranslationSession(
-    private val modelDir: String,
-) {
+class OnnxTranslationSession(private val modelDir: String,) {
     private val env = OrtEnvironment.getEnvironment()
     private var encoderSession: OrtSession? = null
     private var decoderSession: OrtSession? = null
@@ -72,26 +72,25 @@ class OnnxTranslationSession(
      * @param maxLength Maximum number of tokens to generate.
      * @return Generated output token IDs.
      */
-    suspend fun translate(inputIds: LongArray, maxLength: Int = 200): LongArray =
-        withContext(Dispatchers.Default) {
-            if (!isLoaded || encoderSession == null) {
-                throw TranslationException.InferenceFailed("Model not loaded")
-            }
-
-            // If we only have encoder (no decoder), return input as-is (fallback)
-            if (decoderSession == null) {
-                return@withContext runEncoderOnly(inputIds)
-            }
-
-            // Run encoder
-            val encoderOutput = runEncoder(inputIds)
-
-            // Greedy decode
-            val outputIds = greedyDecode(encoderOutput, inputIds, maxLength)
-
-            encoderOutput.close()
-            outputIds
+    suspend fun translate(inputIds: LongArray, maxLength: Int = 200): LongArray = withContext(Dispatchers.Default) {
+        if (!isLoaded || encoderSession == null) {
+            throw TranslationException.InferenceFailed("Model not loaded")
         }
+
+        // If we only have encoder (no decoder), return input as-is (fallback)
+        if (decoderSession == null) {
+            return@withContext runEncoderOnly(inputIds)
+        }
+
+        // Run encoder
+        val encoderOutput = runEncoder(inputIds)
+
+        // Greedy decode
+        val outputIds = greedyDecode(encoderOutput, inputIds, maxLength)
+
+        encoderOutput.close()
+        outputIds
+    }
 
     private fun runEncoder(inputIds: LongArray): OnnxTensor {
         val session = encoderSession!!

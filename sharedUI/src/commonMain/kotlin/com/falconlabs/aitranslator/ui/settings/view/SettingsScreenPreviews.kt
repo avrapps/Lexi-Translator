@@ -23,6 +23,7 @@ package com.falconlabs.aitranslator.ui.settings.view
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+
 import com.falconlabs.aitranslator.ui.theme.LexiTheme
 
 // -- Settings Main Screen Previews --

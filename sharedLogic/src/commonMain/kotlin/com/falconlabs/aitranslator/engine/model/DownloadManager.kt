@@ -17,6 +17,7 @@ import com.falconlabs.aitranslator.domain.model.DownloadState
 import com.falconlabs.aitranslator.domain.model.IntegrityResult
 import com.falconlabs.aitranslator.domain.model.ModelId
 import com.falconlabs.aitranslator.util.currentTimeMillis
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,7 +59,9 @@ class DownloadManager(
         val modelId = model.id
 
         // Insert download record (delete any existing stale record first)
-        try { modelRepository.deleteDownload(modelId) } catch (_: Exception) {}
+        try {
+            modelRepository.deleteDownload(modelId)
+        } catch (_: Exception) {}
         modelRepository.insertDownload(modelId, model.sizeBytes)
         updateProgress(modelId, 0L, model.sizeBytes, DownloadState.QUEUED)
 
@@ -138,14 +141,16 @@ class DownloadManager(
         }
 
         // Return a flow that emits progress for this specific model
-        return _activeDownloads.map { it[modelId] }.map { it ?: DownloadProgress(
-            modelId = modelId,
-            bytesDownloaded = 0L,
-            totalBytes = model.sizeBytes,
-            speedBytesPerSec = 0L,
-            state = DownloadState.QUEUED,
-            estimatedSecondsRemaining = null
-        ) }
+        return _activeDownloads.map { it[modelId] }.map {
+            it ?: DownloadProgress(
+                modelId = modelId,
+                bytesDownloaded = 0L,
+                totalBytes = model.sizeBytes,
+                speedBytesPerSec = 0L,
+                state = DownloadState.QUEUED,
+                estimatedSecondsRemaining = null
+            )
+        }
     }
 
     /** Pauses an active download. Retains partial file for resume. */
@@ -234,16 +239,24 @@ class DownloadManager(
     }
 
     /** Verifies SHA-256 integrity of a model file. */
-    suspend fun verifyIntegrity(filePath: String, expectedChecksum: String): IntegrityResult {
-        return checksumVerifier.verify(filePath, expectedChecksum)
-    }
+    suspend fun verifyIntegrity(filePath: String, expectedChecksum: String): IntegrityResult =
+        checksumVerifier.verify(filePath, expectedChecksum)
 
-    private fun updateProgress(modelId: ModelId, bytesDownloaded: Long, totalBytes: Long, state: DownloadState) {
+    private fun updateProgress(
+        modelId: ModelId,
+        bytesDownloaded: Long,
+        totalBytes: Long,
+        state: DownloadState
+    ) {
         val speed = if (state == DownloadState.DOWNLOADING) calculateSpeed(bytesDownloaded) else 0L
         val eta = if (state == DownloadState.DOWNLOADING) calculateEta(bytesDownloaded, totalBytes, speed) else null
         val progress = DownloadProgress(
-            modelId = modelId, bytesDownloaded = bytesDownloaded, totalBytes = totalBytes,
-            speedBytesPerSec = speed, state = state, estimatedSecondsRemaining = eta
+            modelId = modelId,
+            bytesDownloaded = bytesDownloaded,
+            totalBytes = totalBytes,
+            speedBytesPerSec = speed,
+            state = state,
+            estimatedSecondsRemaining = eta
         )
         _activeDownloads.update { it + (modelId to progress) }
     }
@@ -254,7 +267,11 @@ class DownloadManager(
         return (bytesDownloadedSinceStart * 1000L) / elapsedMs
     }
 
-    private fun calculateEta(bytesDownloaded: Long, totalBytes: Long, speedBytesPerSec: Long): Long? {
+    private fun calculateEta(
+        bytesDownloaded: Long,
+        totalBytes: Long,
+        speedBytesPerSec: Long
+    ): Long? {
         if (speedBytesPerSec <= 0L) return null
         val remaining = totalBytes - bytesDownloaded
         if (remaining <= 0L) return 0L

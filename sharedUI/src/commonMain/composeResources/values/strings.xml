@@ -49,6 +49,14 @@
     <string name="interpreter_start">Start Listening</string>
     <string name="interpreter_stop">Stop</string>
     <string name="interpreter_simulate_placeholder">Type to simulate speech…</string>
+    <string name="interpreter_model_required_stt">Speech Recognition</string>
+    <string name="interpreter_model_required_translation">Translation</string>
+
+    <!-- Model Required Prompt -->
+    <string name="model_required_title">Model Required</string>
+    <string name="model_required_message">A %1$s model is needed for %2$s. Download it from the Model Store to continue.</string>
+    <string name="model_required_download">Download Model</string>
+    <string name="model_required_dismiss">Later</string>
 
     <!-- Text Translation -->
     <string name="translate_input_placeholder">Enter text to translate…</string>

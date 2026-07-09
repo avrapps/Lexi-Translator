@@ -12,6 +12,7 @@ package com.falconlabs.aitranslator.ui.models.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+
 import com.falconlabs.aitranslator.domain.model.AiModel
 import com.falconlabs.aitranslator.domain.model.DownloadProgress
 import com.falconlabs.aitranslator.domain.model.DownloadState
@@ -19,6 +20,7 @@ import com.falconlabs.aitranslator.domain.model.ModelCategory
 import com.falconlabs.aitranslator.domain.model.ModelId
 import com.falconlabs.aitranslator.domain.model.StorageUsage
 import com.falconlabs.aitranslator.engine.model.ModelManager
+
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -73,7 +75,9 @@ data class ModelStoreState(
                             it.languagePair?.target?.code == selectedFilterLang ||
                             it.name.contains(selectedFilterLang, ignoreCase = true)
                     }
-                } else sttModels
+                } else {
+                    sttModels
+                }
             }
             ModelStoreTab.TTS -> {
                 if (selectedFilterLang != null) {
@@ -82,7 +86,9 @@ data class ModelStoreState(
                             it.languagePair?.target?.code == selectedFilterLang ||
                             it.name.contains(selectedFilterLang, ignoreCase = true)
                     }
-                } else ttsModels
+                } else {
+                    ttsModels
+                }
             }
         }
 
@@ -111,9 +117,7 @@ sealed interface ModelStoreIntent {
  * MVI ViewModel for the Model Store screen.
  * Connects to [ModelManager] for real model catalog, downloads, and storage tracking.
  */
-class ModelStoreViewModel(
-    private val modelManager: ModelManager
-) : ViewModel() {
+class ModelStoreViewModel(private val modelManager: ModelManager) : ViewModel() {
 
     private val _state = MutableStateFlow(ModelStoreState())
     val state: StateFlow<ModelStoreState> = _state.asStateFlow()
@@ -171,7 +175,14 @@ class ModelStoreViewModel(
     fun onIntent(intent: ModelStoreIntent) {
         when (intent) {
             is ModelStoreIntent.SelectTab -> {
-                _state.update { it.copy(selectedTab = intent.tab, selectedSourceLang = null, selectedTargetLang = null, selectedFilterLang = null) }
+                _state.update {
+                    it.copy(
+                        selectedTab = intent.tab,
+                        selectedSourceLang = null,
+                        selectedTargetLang = null,
+                        selectedFilterLang = null
+                    )
+                }
             }
             is ModelStoreIntent.DownloadModel -> startDownload(intent.modelId)
             is ModelStoreIntent.RedownloadModel -> redownload(intent.modelId)

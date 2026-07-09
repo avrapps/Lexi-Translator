@@ -58,7 +58,11 @@ fun LexiNavGraph(navController: NavHostController, modifier: Modifier = Modifier
     ) {
         // -- Interpreter Tab --
         navigation<InterpreterGraph>(startDestination = LiveInterpreterRoute) {
-            composable<LiveInterpreterRoute> { LiveInterpreterScreen() }
+            composable<LiveInterpreterRoute> {
+                LiveInterpreterScreen(
+                    onNavigateToModels = { navController.navigate(ModelStoreRoute) },
+                )
+            }
             composable<ConversationHistoryRoute> { ConversationHistoryScreen() }
         }
 

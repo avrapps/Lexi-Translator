@@ -64,8 +64,7 @@ interface TranslationEngine {
 sealed class TranslationException(message: String) : Exception(message) {
     class ModelNotInstalled(val pair: Pair<String, String>) :
         TranslationException("Model not installed for: ${pair.first} → ${pair.second}")
-    class InferenceFailed(val reason: String) :
-        TranslationException("Translation inference failed: $reason")
+    class InferenceFailed(val reason: String) : TranslationException("Translation inference failed: $reason")
     class InputTooLong(val length: Int, val maxLength: Int) :
         TranslationException("Input too long: $length chars (max $maxLength)")
 }

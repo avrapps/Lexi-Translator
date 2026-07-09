@@ -21,10 +21,8 @@
 
 package com.falconlabs.aitranslator.data.repository
 
-import app.cash.sqldelight.coroutines.asFlow
-import app.cash.sqldelight.coroutines.mapToList
-import com.falconlabs.aitranslator.db.LexiDatabase
 import com.falconlabs.aitranslator.db.Installed_model
+import com.falconlabs.aitranslator.db.LexiDatabase
 import com.falconlabs.aitranslator.db.Model_download
 import com.falconlabs.aitranslator.domain.model.DownloadProgress
 import com.falconlabs.aitranslator.domain.model.DownloadState
@@ -35,6 +33,10 @@ import com.falconlabs.aitranslator.domain.model.LanguagePair
 import com.falconlabs.aitranslator.domain.model.ModelCategory
 import com.falconlabs.aitranslator.domain.model.ModelId
 import com.falconlabs.aitranslator.util.currentTimeMillis
+
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -47,17 +49,14 @@ import kotlinx.coroutines.withContext
  *
  * @param database The SQLDelight [LexiDatabase] instance.
  */
-class SqlDelightModelRepository(
-    private val database: LexiDatabase
-) : ModelRepository {
+class SqlDelightModelRepository(private val database: LexiDatabase) : ModelRepository {
 
     private val modelQueries get() = database.lexiQueries
 
-    override fun getAllInstalled(): Flow<List<InstalledModel>> =
-        modelQueries.selectAllModels()
-            .asFlow()
-            .mapToList(Dispatchers.Default)
-            .map { rows -> rows.map { it.toDomain() } }
+    override fun getAllInstalled(): Flow<List<InstalledModel>> = modelQueries.selectAllModels()
+        .asFlow()
+        .mapToList(Dispatchers.Default)
+        .map { rows -> rows.map { it.toDomain() } }
 
     override fun getInstalledById(id: ModelId): InstalledModel? =
         modelQueries.selectModelById(id.id).executeAsOneOrNull()?.toDomain()
@@ -95,11 +94,10 @@ class SqlDelightModelRepository(
         modelQueries.deleteModel(id.id)
     }
 
-    override fun getActiveDownloads(): Flow<List<DownloadProgress>> =
-        modelQueries.selectActiveDownloads()
-            .asFlow()
-            .mapToList(Dispatchers.Default)
-            .map { rows -> rows.map { it.toDownloadProgress() } }
+    override fun getActiveDownloads(): Flow<List<DownloadProgress>> = modelQueries.selectActiveDownloads()
+        .asFlow()
+        .mapToList(Dispatchers.Default)
+        .map { rows -> rows.map { it.toDownloadProgress() } }
 
     override suspend fun insertDownload(modelId: ModelId, totalBytes: Long): Unit = withContext(Dispatchers.Default) {
         val now = currentTimeMillis()

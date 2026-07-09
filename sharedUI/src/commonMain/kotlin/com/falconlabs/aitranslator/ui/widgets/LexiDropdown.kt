@@ -57,7 +57,11 @@ fun <T> LexiDropdown(
             onValueChange = {},
             readOnly = true,
             singleLine = true,
-            label = if (label != null) {{ Text(label, style = MaterialTheme.typography.labelSmall) }} else null,
+            label = if (label != null) {
+                { Text(label, style = MaterialTheme.typography.labelSmall) }
+            } else {
+                null
+            },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
             textStyle = MaterialTheme.typography.bodySmall,
@@ -69,7 +73,10 @@ fun <T> LexiDropdown(
             options.forEach { (value, displayLabel) ->
                 DropdownMenuItem(
                     text = { Text(displayLabel) },
-                    onClick = { onSelected(value); expanded = false },
+                    onClick = {
+                        onSelected(value)
+                        expanded = false
+                    },
                 )
             }
         }

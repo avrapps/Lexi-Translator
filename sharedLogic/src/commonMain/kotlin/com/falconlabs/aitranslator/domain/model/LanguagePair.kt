@@ -25,10 +25,7 @@ package com.falconlabs.aitranslator.domain.model
  * Represents a directional source→target language pair for translation.
  * Derives the corresponding model ID from the OPUS-MT naming convention.
  */
-data class LanguagePair(
-    val source: LanguageCode,
-    val target: LanguageCode
-) {
+data class LanguagePair(val source: LanguageCode, val target: LanguageCode) {
     /** Model identifier following the Xenova/opus-mt naming convention. */
     val modelId: String get() = "Xenova/opus-mt-${source.code}-${target.code}"
 }

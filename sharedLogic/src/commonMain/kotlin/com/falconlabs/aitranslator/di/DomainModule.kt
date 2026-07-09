@@ -21,8 +21,11 @@
 
 package com.falconlabs.aitranslator.di
 
+import com.falconlabs.aitranslator.engine.stt.SttEngine
+import com.falconlabs.aitranslator.engine.stt.WhisperSttEngine
 import com.falconlabs.aitranslator.engine.translation.OfflineTranslationEngine
 import com.falconlabs.aitranslator.engine.translation.TranslationEngine
+
 import org.koin.dsl.module
 
 /**
@@ -32,4 +35,7 @@ import org.koin.dsl.module
 val domainModule = module {
     // Translation engine — offline ONNX-backed (singleton for model session reuse)
     single<TranslationEngine> { OfflineTranslationEngine(get(), get()) }
+
+    // STT engine — Whisper-based with platform audio capture
+    single<SttEngine> { WhisperSttEngine(get(), get()) }
 }

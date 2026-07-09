@@ -20,10 +20,9 @@ import com.falconlabs.aitranslator.domain.model.IntegrityResult
 import com.falconlabs.aitranslator.domain.model.ModelId
 import com.falconlabs.aitranslator.domain.model.ModelRecommendation
 import com.falconlabs.aitranslator.domain.model.StorageUsage
+
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -43,11 +42,9 @@ class ModelManagerImpl(
     private val scope: kotlinx.coroutines.CoroutineScope
 ) : ModelManager {
 
-    override fun getAvailableModels(): Flow<List<AiModel>> =
-        modelCatalog.getCatalog()
+    override fun getAvailableModels(): Flow<List<AiModel>> = modelCatalog.getCatalog()
 
-    override fun getInstalledModels(): Flow<List<InstalledModel>> =
-        modelRepository.getAllInstalled()
+    override fun getInstalledModels(): Flow<List<InstalledModel>> = modelRepository.getAllInstalled()
 
     override suspend fun downloadModel(modelId: ModelId): Flow<DownloadProgress> {
         val model = modelCatalog.getModelById(modelId)
@@ -69,7 +66,9 @@ class ModelManagerImpl(
                 val modelDir = java.io.File(destFilePath).parentFile ?: return@launch
                 // Wait for primary file to exist
                 val primaryFile = java.io.File(destFilePath)
-                while (!primaryFile.exists()) { delay(500) }
+                while (!primaryFile.exists()) {
+                    delay(500)
+                }
 
                 for ((filename, url) in modelFiles) {
                     if (filename == primaryEntry.key) continue // skip primary
@@ -130,25 +129,23 @@ class ModelManagerImpl(
         return downloadManager.verifyIntegrity(installed.filePath, installed.sha256Checksum)
     }
 
-    override fun getStorageUsage(): Flow<StorageUsage> =
-        modelRepository.getAllInstalled().map { models ->
-            val totalUsed = models.sumOf { it.sizeBytes }
-            val available = storageProvider.getAvailableStorageBytes()
-            val perModel = models.associate { it.id to it.sizeBytes }
-            StorageUsage(
-                totalUsedBytes = totalUsed,
-                availableBytes = available,
-                perModelUsage = perModel
-            )
-        }
+    override fun getStorageUsage(): Flow<StorageUsage> = modelRepository.getAllInstalled().map { models ->
+        val totalUsed = models.sumOf { it.sizeBytes }
+        val available = storageProvider.getAvailableStorageBytes()
+        val perModel = models.associate { it.id to it.sizeBytes }
+        StorageUsage(
+            totalUsedBytes = totalUsed,
+            availableBytes = available,
+            perModelUsage = perModel
+        )
+    }
 
-    override fun getRecommendations(deviceProfile: DeviceProfile): List<ModelRecommendation> {
-        return ModelRecommendationEngine.recommend(
+    override fun getRecommendations(deviceProfile: DeviceProfile): List<ModelRecommendation> =
+        ModelRecommendationEngine.recommend(
             catalog = modelCatalog.getCatalogSnapshot(),
             deviceProfile = deviceProfile,
             limit = 10
         )
-    }
 }
 
 /**
