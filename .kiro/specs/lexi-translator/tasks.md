@@ -12,7 +12,7 @@ Progressive delivery plan for the Lexi Translator offline AI translation platfor
 
 ## Wave 1: Foundation & Infrastructure
 
-- [ ] 1. Project Structure and Build Configuration
+- [x] 1. Project Structure and Build Configuration
   - [x] 1.1 Configure CI/CD GitHub Actions workflows
     - Create `.github/workflows/pr-check.yml`: build Android + Desktop + iOS, run ktlint, run detekt, run unit tests
     - Create `.github/workflows/release.yml`: build AAB/APK, Desktop MSI/EXE + Snap package, iOS IPA on tag push
@@ -55,7 +55,7 @@ Progressive delivery plan for the Lexi Translator offline AI translation platfor
     - Wire Koin initialization in each platform's Application/main entry point
     - _Requirements: 1.2_
 
-  - [ ] 1.6 Create Navigation Graph skeleton
+  - [x] 1.6 Create Navigation Graph skeleton
     - Define `NavGraph.kt` in `sharedUI/commonMain` using Compose Navigation type-safe routes
     - Create sealed route classes for all 6 tabs: LiveInterpreter, TextTranslate, NeuralSpeak, Library, Models, Settings
     - Define nested route classes for sub-screens (ModelDetail, VoiceLibrary, FolderView, etc.)
@@ -64,7 +64,7 @@ Progressive delivery plan for the Lexi Translator offline AI translation platfor
     - Generate Compose Previews for each placeholder screen across Phone, Tablet, Desktop in Light + Dark themes
     - _Requirements: 1.3_
 
-  - [ ] 1.7 Implement Neural-Minimalist theme system
+  - [x] 1.7 Implement Neural-Minimalist theme system
     - Create `LexiTheme.kt` with Material3 `MaterialTheme` wrapper
     - Define `LexiColorScheme` for Light, Dark, and Dynamic color palettes using Neural-Minimalist design tokens
     - Create `LexiTypography` with scaled text styles (Small/Medium/Large/Huge/Presentation) using Inter + JetBrains Mono
@@ -74,7 +74,7 @@ Progressive delivery plan for the Lexi Translator offline AI translation platfor
     - Generate Compose Preview for theme showcase across all form factors and themes
     - _Requirements: 7.4, 9.7_
 
-  - [ ] 1.8 Set up SQLDelight + SQLCipher database
+  - [x] 1.8 Set up SQLDelight + SQLCipher database
     - Create `lexi.sq` schema files in `sharedLogic/commonMain/sqldelight`
     - Define all tables from design: `installed_model`, `model_download`, `library_entry`, `folder`, `tag`, `entry_tag`, `conversation_card`, `session_state`, `user_setting`
     - Create FTS5 virtual table `library_entry_fts`
@@ -83,7 +83,7 @@ Progressive delivery plan for the Lexi Translator offline AI translation platfor
     - Add SQLCipher dependency and wire AES-256 encryption for the Android driver
     - _Requirements: 5.5_
 
-  - [ ] 1.9 Set up Analytics interface and Crashlytics integration
+  - [x] 1.9 Set up Analytics interface and Crashlytics integration
     - Create `LexiAnalytics` interface in `sharedLogic/commonMain` with: `logScreenView()`, `logEvent()`, `logError()`, `setAnalyticsEnabled()`
     - Create `NoOpAnalytics` implementation (default when disabled)
     - Create `FirebaseAnalyticsImpl` in `androidApp` integrating Firebase Crashlytics + Analytics
@@ -92,7 +92,7 @@ Progressive delivery plan for the Lexi Translator offline AI translation platfor
     - Register `LexiAnalytics` in Koin platform modules
     - _Requirements: 11.1, 11.2, 11.3, 11.4_
 
-  - [ ] 1.10 Set up Ads and In-App Purchase infrastructure
+  - [x] 1.10 Set up Ads and In-App Purchase infrastructure
     - Add AdMob dependency to `androidApp`
     - Create `AdsManager` interface with `showExitInterstitial()` and `isAdFree(): Boolean`
     - Implement `AdMobAdsManager` in `androidApp` — load interstitial on app start, show ONLY on app close
@@ -113,7 +113,7 @@ Progressive delivery plan for the Lexi Translator offline AI translation platfor
     - Verify analytics calls are no-ops when disabled
     - _Requirements: 1.1, 1.2, 1.3, 1.10, 11.4_
 
-- [ ] 2. Wave 1 Checkpoint
+- [x] 2. Wave 1 Checkpoint
   - Ensure all platform targets build without errors (Android, Desktop, iOS)
   - Verify CI/CD workflow runs green on a test PR
   - Verify release workflow produces AAB, Desktop installer, and IPA artifacts

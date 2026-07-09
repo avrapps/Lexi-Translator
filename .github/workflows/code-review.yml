@@ -1,0 +1,86 @@
+# Lexi Translator — Offline AI Translation Platform
+# Copyright (C) 2024-2026 ANRMS PRIVATE LIMITED
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# COPYLEFT: Using any part of this code requires you to publish your
+# ENTIRE source code under AGPL-3.0. No exceptions. No closed-source use.
+
+name: AI Code Review
+
+on:
+  pull_request:
+    types: [ opened, synchronize ]
+
+concurrency:
+  group: code-review-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  ai-review:
+    name: AI Code Review Agent
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: AI PR Reviewer
+        uses: coderabbitai/ai-pr-reviewer@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        with:
+          debug: false
+          review_simple_changes: false
+          review_comment_lgtm: false
+          openai_light_model: gpt-4o-mini
+          openai_heavy_model: gpt-4o
+          language: en
+          path_filters: |
+            **/*.kt
+            **/*.kts
+          system_message: |
+            You are a Kotlin/KMP code reviewer for the Lexi Translator project (AGPL-3.0 licensed).
+            Focus your review on the following categories:
+
+            1. **Kotlin Code Style**: Verify adherence to Kotlin conventions, proper use of
+               scope functions, idiomatic patterns, and consistent naming.
+
+            2. **Null-Safety Issues**: Flag unsafe !! operators, platform types without null
+               checks, unchecked casts, and nullable types that should be non-null.
+
+            3. **Unused Imports**: Identify any import statements that are not referenced in
+               the file.
+
+            4. **Performance Anti-Patterns**: Look for unnecessary object allocations in hot
+               paths, missing lazy initialization, blocking calls on main thread, inefficient
+               collection operations (e.g., using filter+first instead of firstOrNull),
+               and unnecessary recompositions in Compose code.
+
+            Additional context:
+            - The project uses Koin for DI (constructor injection only, no field injection)
+            - MVI architecture pattern with StateFlow
+            - Compose Multiplatform for UI across Android, Desktop, and iOS
+            - All source files must have AGPL license headers
+
+            Be concise and actionable in your comments. Only flag genuine issues, not style
+            preferences. Do not suggest changes that conflict with the project's .editorconfig
+            or ktlint configuration.

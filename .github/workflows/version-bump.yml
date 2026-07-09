@@ -1,0 +1,378 @@
+# Lexi Translator — Offline AI Translation Platform
+# Copyright (C) 2024-2026 ANRMS PRIVATE LIMITED
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# COPYLEFT: Using any part of this code requires you to publish your
+# ENTIRE source code under AGPL-3.0. No exceptions. No closed-source use.
+
+name: Version Bump & Changelog
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: "Version bump type"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+concurrency:
+  group: version-bump
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  version-bump:
+    name: Bump Version & Generate Changelog
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Run on manual dispatch OR when a PR with "release" label is merged
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.merged == true &&
+       contains(github.event.pull_request.labels.*.name, 'release'))
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine bump type
+        id: bump-type
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "type=${{ github.event.inputs.bump_type }}" >> $GITHUB_OUTPUT
+          else
+            # Default to patch for merged PRs with release label
+            # Check PR title for hints: "feat" = minor, "BREAKING" = major
+            PR_TITLE="${{ github.event.pull_request.title }}"
+            if echo "$PR_TITLE" | grep -qi "BREAKING"; then
+              echo "type=major" >> $GITHUB_OUTPUT
+            elif echo "$PR_TITLE" | grep -qi "^feat"; then
+              echo "type=minor" >> $GITHUB_OUTPUT
+            else
+              echo "type=patch" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Read current version
+        id: current-version
+        run: |
+          CURRENT_VERSION=$(cat VERSION | tr -d '[:space:]')
+          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $CURRENT_VERSION"
+
+      - name: Calculate next version
+        id: next-version
+        run: |
+          CURRENT="${{ steps.current-version.outputs.version }}"
+          BUMP_TYPE="${{ steps.bump-type.outputs.type }}"
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+
+          case "$BUMP_TYPE" in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+
+          NEXT_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          echo "Next version: $NEXT_VERSION"
+
+      - name: Get previous tag
+        id: prev-tag
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "tag=$PREV_TAG" >> $GITHUB_OUTPUT
+          echo "Previous tag: ${PREV_TAG:-'(none)'}"
+
+      - name: Parse conventional commits
+        id: commits
+        run: |
+          PREV_TAG="${{ steps.prev-tag.outputs.tag }}"
+
+          if [ -n "$PREV_TAG" ]; then
+            RANGE="${PREV_TAG}..HEAD"
+          else
+            RANGE="HEAD"
+          fi
+
+          # Collect commits by type
+          FEATURES=""
+          FIXES=""
+          CHORES=""
+          OTHER=""
+
+          while IFS= read -r line; do
+            if [ -z "$line" ]; then
+              continue
+            fi
+
+            # Extract commit message (skip merge commits)
+            if echo "$line" | grep -q "^Merge"; then
+              continue
+            fi
+
+            # Categorize by Conventional Commits prefix
+            if echo "$line" | grep -qE "^feat(\(.*\))?:"; then
+              FEATURES="${FEATURES}\n- ${line#feat*: }"
+            elif echo "$line" | grep -qE "^fix(\(.*\))?:"; then
+              FIXES="${FIXES}\n- ${line#fix*: }"
+            elif echo "$line" | grep -qE "^chore(\(.*\))?:"; then
+              CHORES="${CHORES}\n- ${line#chore*: }"
+            elif echo "$line" | grep -qE "^docs(\(.*\))?:"; then
+              OTHER="${OTHER}\n- ${line}"
+            elif echo "$line" | grep -qE "^(refactor|perf|test|ci|build|style)(\(.*\))?:"; then
+              OTHER="${OTHER}\n- ${line}"
+            else
+              OTHER="${OTHER}\n- ${line}"
+            fi
+          done < <(git log $RANGE --pretty=format:"%s" --no-merges)
+
+          # Write to files for later steps
+          echo -e "$FEATURES" > /tmp/features.txt
+          echo -e "$FIXES" > /tmp/fixes.txt
+          echo -e "$CHORES" > /tmp/chores.txt
+          echo -e "$OTHER" > /tmp/other.txt
+
+          # Store for output
+          {
+            echo "features<<EOF"
+            echo -e "$FEATURES"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+          {
+            echo "fixes<<EOF"
+            echo -e "$FIXES"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+          {
+            echo "chores<<EOF"
+            echo -e "$CHORES"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+          {
+            echo "other<<EOF"
+            echo -e "$OTHER"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: Generate CHANGELOG entry
+        run: |
+          NEXT_VERSION="${{ steps.next-version.outputs.version }}"
+          DATE=$(date +%Y-%m-%d)
+          FEATURES="${{ steps.commits.outputs.features }}"
+          FIXES="${{ steps.commits.outputs.fixes }}"
+          CHORES="${{ steps.commits.outputs.chores }}"
+          OTHER="${{ steps.commits.outputs.other }}"
+
+          # Build the new changelog entry
+          ENTRY="## [${NEXT_VERSION}] - ${DATE}\n"
+
+          if [ -n "$(echo -e "$FEATURES" | tr -d '[:space:]')" ]; then
+            ENTRY="${ENTRY}\n### Features\n${FEATURES}\n"
+          fi
+
+          if [ -n "$(echo -e "$FIXES" | tr -d '[:space:]')" ]; then
+            ENTRY="${ENTRY}\n### Fixes\n${FIXES}\n"
+          fi
+
+          if [ -n "$(echo -e "$CHORES" | tr -d '[:space:]')" ]; then
+            ENTRY="${ENTRY}\n### Chores\n${CHORES}\n"
+          fi
+
+          if [ -n "$(echo -e "$OTHER" | tr -d '[:space:]')" ]; then
+            ENTRY="${ENTRY}\n### Other\n${OTHER}\n"
+          fi
+
+          # Prepend to CHANGELOG.md (create if not exists)
+          if [ -f CHANGELOG.md ]; then
+            # Insert new entry after the header
+            TEMP_FILE=$(mktemp)
+            if head -1 CHANGELOG.md | grep -q "^# Changelog"; then
+              echo "# Changelog" > "$TEMP_FILE"
+              echo "" >> "$TEMP_FILE"
+              echo -e "$ENTRY" >> "$TEMP_FILE"
+              tail -n +2 CHANGELOG.md >> "$TEMP_FILE"
+            else
+              echo "# Changelog" > "$TEMP_FILE"
+              echo "" >> "$TEMP_FILE"
+              echo -e "$ENTRY" >> "$TEMP_FILE"
+              cat CHANGELOG.md >> "$TEMP_FILE"
+            fi
+            mv "$TEMP_FILE" CHANGELOG.md
+          else
+            echo "# Changelog" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo -e "$ENTRY" >> CHANGELOG.md
+          fi
+
+      - name: Generate blog post summary
+        run: |
+          NEXT_VERSION="${{ steps.next-version.outputs.version }}"
+          DATE=$(date +%Y-%m-%d)
+          FEATURES="${{ steps.commits.outputs.features }}"
+          FIXES="${{ steps.commits.outputs.fixes }}"
+          CHORES="${{ steps.commits.outputs.chores }}"
+
+          mkdir -p docs/releases
+
+          cat > "docs/releases/${NEXT_VERSION}.md" << 'BLOG_HEADER'
+          ---
+          title: "Lexi Translator v${NEXT_VERSION} Release"
+          date: "${DATE}"
+          version: "${NEXT_VERSION}"
+          ---
+
+          BLOG_HEADER
+
+          # Use envsubst-style replacement since heredoc won't expand
+          sed -i "s/\${NEXT_VERSION}/${NEXT_VERSION}/g" "docs/releases/${NEXT_VERSION}.md"
+          sed -i "s/\${DATE}/${DATE}/g" "docs/releases/${NEXT_VERSION}.md"
+
+          # Generate summary content (≤500 words)
+          {
+            echo "# Lexi Translator v${NEXT_VERSION}"
+            echo ""
+            echo "We're excited to announce the release of Lexi Translator v${NEXT_VERSION}! This update brings improvements to our privacy-first, offline AI translation platform."
+            echo ""
+
+            if [ -n "$(echo -e "$FEATURES" | tr -d '[:space:]')" ]; then
+              echo "## New Features"
+              echo ""
+              echo -e "$FEATURES"
+              echo ""
+            fi
+
+            if [ -n "$(echo -e "$FIXES" | tr -d '[:space:]')" ]; then
+              echo "## Bug Fixes"
+              echo ""
+              echo -e "$FIXES"
+              echo ""
+            fi
+
+            if [ -n "$(echo -e "$CHORES" | tr -d '[:space:]')" ]; then
+              echo "## Maintenance"
+              echo ""
+              echo -e "$CHORES"
+              echo ""
+            fi
+
+            echo "---"
+            echo ""
+            echo "Lexi Translator is available on Android (Google Play), iOS (App Store), Windows (Windows Store), and Linux (Snap Store). All translations run entirely on-device — no internet required."
+            echo ""
+            echo "For full details, see the [CHANGELOG](../../CHANGELOG.md)."
+          } >> "docs/releases/${NEXT_VERSION}.md"
+
+          # Enforce 500-word limit by truncating if needed
+          WORD_COUNT=$(wc -w < "docs/releases/${NEXT_VERSION}.md")
+          if [ "$WORD_COUNT" -gt 500 ]; then
+            # Truncate to ~500 words while keeping complete lines
+            head -n $(awk 'BEGIN{c=0} {c+=NF; if(c>=500){print NR; exit}}' "docs/releases/${NEXT_VERSION}.md") \
+              "docs/releases/${NEXT_VERSION}.md" > /tmp/blog_truncated.md
+            echo "" >> /tmp/blog_truncated.md
+            echo "---" >> /tmp/blog_truncated.md
+            echo "" >> /tmp/blog_truncated.md
+            echo "For full details, see the [CHANGELOG](../../CHANGELOG.md)." >> /tmp/blog_truncated.md
+            mv /tmp/blog_truncated.md "docs/releases/${NEXT_VERSION}.md"
+          fi
+
+      - name: Generate release notes
+        id: release-notes
+        run: |
+          NEXT_VERSION="${{ steps.next-version.outputs.version }}"
+          FEATURES="${{ steps.commits.outputs.features }}"
+          FIXES="${{ steps.commits.outputs.fixes }}"
+          CHORES="${{ steps.commits.outputs.chores }}"
+
+          {
+            echo "notes<<EOF"
+            echo "## What's Changed in v${NEXT_VERSION}"
+            echo ""
+
+            if [ -n "$(echo -e "$FEATURES" | tr -d '[:space:]')" ]; then
+              echo "### 🚀 Features"
+              echo -e "$FEATURES"
+              echo ""
+            fi
+
+            if [ -n "$(echo -e "$FIXES" | tr -d '[:space:]')" ]; then
+              echo "### 🐛 Bug Fixes"
+              echo -e "$FIXES"
+              echo ""
+            fi
+
+            if [ -n "$(echo -e "$CHORES" | tr -d '[:space:]')" ]; then
+              echo "### 🔧 Maintenance"
+              echo -e "$CHORES"
+              echo ""
+            fi
+
+            echo "---"
+            echo ""
+            echo "**Full Changelog**: https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: Update VERSION file
+        run: |
+          echo "${{ steps.next-version.outputs.version }}" > VERSION
+
+      - name: Commit release changes
+        run: |
+          NEXT_VERSION="${{ steps.next-version.outputs.version }}"
+
+          git add VERSION CHANGELOG.md "docs/releases/${NEXT_VERSION}.md"
+          git commit -m "[release] v${NEXT_VERSION}
+
+          - Bump version from ${{ steps.current-version.outputs.version }} to ${NEXT_VERSION}
+          - Generate CHANGELOG entry
+          - Generate blog post summary"
+
+      - name: Create and push version tag
+        run: |
+          NEXT_VERSION="${{ steps.next-version.outputs.version }}"
+          RELEASE_NOTES="${{ steps.release-notes.outputs.notes }}"
+
+          git tag -a "v${NEXT_VERSION}" -m "Release v${NEXT_VERSION}"
+          git push origin main --follow-tags

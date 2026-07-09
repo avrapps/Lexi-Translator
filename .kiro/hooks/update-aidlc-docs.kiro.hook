@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Update AIDLC Docs",
+  "description": "When source files are edited, reminds the agent to update the corresponding module documentation in docs/ and append a changelog entry to docs/CHANGELOG.md",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.kt",
+      "*.kts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A source file was edited. Check which module it belongs to (androidApp, desktopApp, sharedLogic, sharedUI). Update the corresponding docs/{module}.md with a brief note about what changed. Also append a dated entry to docs/CHANGELOG.md in the format: ## [YYYY-MM-DD] Module: {module} - description of change. Keep entries concise."
+  }
+}

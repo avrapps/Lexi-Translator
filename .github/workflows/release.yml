@@ -242,91 +242,6 @@ jobs:
           path: ${{ runner.temp }}/ipa/*.ipa
           retention-days: 14
 
-  publish-google-play:
-    name: Publish to Google Play
-    needs: build-android
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Download Android artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: android-release
-
-      - name: Publish AAB to Google Play
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-          packageName: com.falconlabs.aitranslator
-          releaseFiles: bundle/release/*.aab
-          track: internal
-          status: draft
-
-  publish-app-store:
-    name: Publish to App Store Connect
-    needs: build-ios
-    runs-on: macos-latest
-    timeout-minutes: 15
-    steps:
-      - name: Download iOS artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ios-release
-
-      - name: Upload IPA to App Store Connect
-        env:
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
-        run: |
-          API_KEY_PATH=$RUNNER_TEMP/AuthKey.p8
-          echo "$APP_STORE_CONNECT_API_KEY_BASE64" | base64 --decode -o $API_KEY_PATH
-
-          xcrun altool --upload-app \
-            --type ios \
-            --file *.ipa \
-            --apiKey "$APP_STORE_CONNECT_API_KEY_ID" \
-            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
-
-  publish-windows-store:
-    name: Publish to Windows Store (MSIX)
-    needs: build-desktop
-    runs-on: windows-latest
-    timeout-minutes: 15
-    steps:
-      - name: Download Windows MSIX artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: desktop-windows-msix
-
-      - name: Submit to Windows Store
-        uses: nickkraakman/windowsstore-submit-action@v1
-        with:
-          app-id: ${{ secrets.WINDOWS_STORE_APP_ID }}
-          tenant-id: ${{ secrets.WINDOWS_STORE_TENANT_ID }}
-          client-id: ${{ secrets.WINDOWS_STORE_CLIENT_ID }}
-          client-secret: ${{ secrets.WINDOWS_STORE_CLIENT_SECRET }}
-          package-path: "**/*.msix"
-
-  publish-snap-store:
-    name: Publish to Snap Store
-    needs: build-desktop
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Download Snap artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: desktop-linux-snap
-
-      - name: Install Snapcraft
-        uses: samber/setup-snapcraft@v2
-
-      - name: Publish to Snap Store
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-        run: snapcraft upload --release=edge *.snap
-
   create-github-release:
     name: Create GitHub Release
     needs: [build-android, build-desktop, build-ios]
@@ -380,3 +295,90 @@ jobs:
           files: release-artifacts/**/*
           draft: false
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+
+  # -- Store Publishing (runs AFTER GitHub Release) --
+
+  publish-google-play:
+    name: Publish to Google Play
+    needs: create-github-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download Android artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android-release
+
+      - name: Publish AAB to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.falconlabs.aitranslator
+          releaseFiles: bundle/release/*.aab
+          track: internal
+          status: draft
+
+  publish-app-store:
+    name: Publish to App Store Connect
+    needs: create-github-release
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download iOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-release
+
+      - name: Upload IPA to App Store Connect
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+        run: |
+          API_KEY_PATH=$RUNNER_TEMP/AuthKey.p8
+          echo "$APP_STORE_CONNECT_API_KEY_BASE64" | base64 --decode -o $API_KEY_PATH
+
+          xcrun altool --upload-app \
+            --type ios \
+            --file *.ipa \
+            --apiKey "$APP_STORE_CONNECT_API_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
+
+  publish-windows-store:
+    name: Publish to Windows Store (MSIX)
+    needs: create-github-release
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download Windows MSIX artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: desktop-windows-msix
+
+      - name: Submit to Windows Store
+        uses: nickkraakman/windowsstore-submit-action@v1
+        with:
+          app-id: ${{ secrets.WINDOWS_STORE_APP_ID }}
+          tenant-id: ${{ secrets.WINDOWS_STORE_TENANT_ID }}
+          client-id: ${{ secrets.WINDOWS_STORE_CLIENT_ID }}
+          client-secret: ${{ secrets.WINDOWS_STORE_CLIENT_SECRET }}
+          package-path: "**/*.msix"
+
+  publish-snap-store:
+    name: Publish to Snap Store
+    needs: create-github-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download Snap artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: desktop-linux-snap
+
+      - name: Install Snapcraft
+        uses: samber/setup-snapcraft@v2
+
+      - name: Publish to Snap Store
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        run: snapcraft upload --release=edge *.snap
