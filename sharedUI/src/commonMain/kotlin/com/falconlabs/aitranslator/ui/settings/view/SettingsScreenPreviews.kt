@@ -21,58 +21,56 @@
 
 package com.falconlabs.aitranslator.ui.settings.view
 
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import com.falconlabs.aitranslator.ui.theme.LexiTheme
 
 // -- Settings Main Screen Previews --
 
 @Preview(name = "Phone Light", widthDp = 360, heightDp = 800, showBackground = true)
 @Composable
-private fun SettingsMainScreenPhoneLightPreview() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
+private fun SettingsMainPhoneLightPreview() {
+    LexiTheme(darkTheme = false) {
         SettingsMainScreen()
     }
 }
 
 @Preview(name = "Phone Dark", widthDp = 360, heightDp = 800, showBackground = true)
 @Composable
-private fun SettingsMainScreenPhoneDarkPreview() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
+private fun SettingsMainPhoneDarkPreview() {
+    LexiTheme(darkTheme = true) {
         SettingsMainScreen()
     }
 }
 
 @Preview(name = "Tablet Light", widthDp = 768, heightDp = 1024, showBackground = true)
 @Composable
-private fun SettingsMainScreenTabletLightPreview() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
+private fun SettingsMainTabletLightPreview() {
+    LexiTheme(darkTheme = false) {
         SettingsMainScreen()
     }
 }
 
 @Preview(name = "Tablet Dark", widthDp = 768, heightDp = 1024, showBackground = true)
 @Composable
-private fun SettingsMainScreenTabletDarkPreview() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
+private fun SettingsMainTabletDarkPreview() {
+    LexiTheme(darkTheme = true) {
         SettingsMainScreen()
     }
 }
 
 @Preview(name = "Desktop Light", widthDp = 1280, heightDp = 800, showBackground = true)
 @Composable
-private fun SettingsMainScreenDesktopLightPreview() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
+private fun SettingsMainDesktopLightPreview() {
+    LexiTheme(darkTheme = false) {
         SettingsMainScreen()
     }
 }
 
 @Preview(name = "Desktop Dark", widthDp = 1280, heightDp = 800, showBackground = true)
 @Composable
-private fun SettingsMainScreenDesktopDarkPreview() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
+private fun SettingsMainDesktopDarkPreview() {
+    LexiTheme(darkTheme = true) {
         SettingsMainScreen()
     }
 }
@@ -81,48 +79,48 @@ private fun SettingsMainScreenDesktopDarkPreview() {
 
 @Preview(name = "Phone Light", widthDp = 360, heightDp = 800, showBackground = true)
 @Composable
-private fun AiSettingsScreenPhoneLightPreview() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
+private fun AiSettingsPhoneLightPreview() {
+    LexiTheme(darkTheme = false) {
         AiSettingsScreen()
     }
 }
 
 @Preview(name = "Phone Dark", widthDp = 360, heightDp = 800, showBackground = true)
 @Composable
-private fun AiSettingsScreenPhoneDarkPreview() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
+private fun AiSettingsPhoneDarkPreview() {
+    LexiTheme(darkTheme = true) {
         AiSettingsScreen()
     }
 }
 
 @Preview(name = "Tablet Light", widthDp = 768, heightDp = 1024, showBackground = true)
 @Composable
-private fun AiSettingsScreenTabletLightPreview() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
+private fun AiSettingsTabletLightPreview() {
+    LexiTheme(darkTheme = false) {
         AiSettingsScreen()
     }
 }
 
 @Preview(name = "Tablet Dark", widthDp = 768, heightDp = 1024, showBackground = true)
 @Composable
-private fun AiSettingsScreenTabletDarkPreview() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
+private fun AiSettingsTabletDarkPreview() {
+    LexiTheme(darkTheme = true) {
         AiSettingsScreen()
     }
 }
 
 @Preview(name = "Desktop Light", widthDp = 1280, heightDp = 800, showBackground = true)
 @Composable
-private fun AiSettingsScreenDesktopLightPreview() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
+private fun AiSettingsDesktopLightPreview() {
+    LexiTheme(darkTheme = false) {
         AiSettingsScreen()
     }
 }
 
 @Preview(name = "Desktop Dark", widthDp = 1280, heightDp = 800, showBackground = true)
 @Composable
-private fun AiSettingsScreenDesktopDarkPreview() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
+private fun AiSettingsDesktopDarkPreview() {
+    LexiTheme(darkTheme = true) {
         AiSettingsScreen()
     }
 }
@@ -131,48 +129,48 @@ private fun AiSettingsScreenDesktopDarkPreview() {
 
 @Preview(name = "Phone Light", widthDp = 360, heightDp = 800, showBackground = true)
 @Composable
-private fun AudioSettingsScreenPhoneLightPreview() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
+private fun AudioSettingsPhoneLightPreview() {
+    LexiTheme(darkTheme = false) {
         AudioSettingsScreen()
     }
 }
 
 @Preview(name = "Phone Dark", widthDp = 360, heightDp = 800, showBackground = true)
 @Composable
-private fun AudioSettingsScreenPhoneDarkPreview() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
+private fun AudioSettingsPhoneDarkPreview() {
+    LexiTheme(darkTheme = true) {
         AudioSettingsScreen()
     }
 }
 
 @Preview(name = "Tablet Light", widthDp = 768, heightDp = 1024, showBackground = true)
 @Composable
-private fun AudioSettingsScreenTabletLightPreview() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
+private fun AudioSettingsTabletLightPreview() {
+    LexiTheme(darkTheme = false) {
         AudioSettingsScreen()
     }
 }
 
 @Preview(name = "Tablet Dark", widthDp = 768, heightDp = 1024, showBackground = true)
 @Composable
-private fun AudioSettingsScreenTabletDarkPreview() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
+private fun AudioSettingsTabletDarkPreview() {
+    LexiTheme(darkTheme = true) {
         AudioSettingsScreen()
     }
 }
 
 @Preview(name = "Desktop Light", widthDp = 1280, heightDp = 800, showBackground = true)
 @Composable
-private fun AudioSettingsScreenDesktopLightPreview() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
+private fun AudioSettingsDesktopLightPreview() {
+    LexiTheme(darkTheme = false) {
         AudioSettingsScreen()
     }
 }
 
 @Preview(name = "Desktop Dark", widthDp = 1280, heightDp = 800, showBackground = true)
 @Composable
-private fun AudioSettingsScreenDesktopDarkPreview() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
+private fun AudioSettingsDesktopDarkPreview() {
+    LexiTheme(darkTheme = true) {
         AudioSettingsScreen()
     }
 }
@@ -181,48 +179,48 @@ private fun AudioSettingsScreenDesktopDarkPreview() {
 
 @Preview(name = "Phone Light", widthDp = 360, heightDp = 800, showBackground = true)
 @Composable
-private fun PrivacySettingsScreenPhoneLightPreview() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
+private fun PrivacySettingsPhoneLightPreview() {
+    LexiTheme(darkTheme = false) {
         PrivacySettingsScreen()
     }
 }
 
 @Preview(name = "Phone Dark", widthDp = 360, heightDp = 800, showBackground = true)
 @Composable
-private fun PrivacySettingsScreenPhoneDarkPreview() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
+private fun PrivacySettingsPhoneDarkPreview() {
+    LexiTheme(darkTheme = true) {
         PrivacySettingsScreen()
     }
 }
 
 @Preview(name = "Tablet Light", widthDp = 768, heightDp = 1024, showBackground = true)
 @Composable
-private fun PrivacySettingsScreenTabletLightPreview() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
+private fun PrivacySettingsTabletLightPreview() {
+    LexiTheme(darkTheme = false) {
         PrivacySettingsScreen()
     }
 }
 
 @Preview(name = "Tablet Dark", widthDp = 768, heightDp = 1024, showBackground = true)
 @Composable
-private fun PrivacySettingsScreenTabletDarkPreview() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
+private fun PrivacySettingsTabletDarkPreview() {
+    LexiTheme(darkTheme = true) {
         PrivacySettingsScreen()
     }
 }
 
 @Preview(name = "Desktop Light", widthDp = 1280, heightDp = 800, showBackground = true)
 @Composable
-private fun PrivacySettingsScreenDesktopLightPreview() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
+private fun PrivacySettingsDesktopLightPreview() {
+    LexiTheme(darkTheme = false) {
         PrivacySettingsScreen()
     }
 }
 
 @Preview(name = "Desktop Dark", widthDp = 1280, heightDp = 800, showBackground = true)
 @Composable
-private fun PrivacySettingsScreenDesktopDarkPreview() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
+private fun PrivacySettingsDesktopDarkPreview() {
+    LexiTheme(darkTheme = true) {
         PrivacySettingsScreen()
     }
 }

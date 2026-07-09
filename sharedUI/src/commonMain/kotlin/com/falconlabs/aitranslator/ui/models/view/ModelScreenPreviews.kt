@@ -21,59 +21,152 @@
 
 package com.falconlabs.aitranslator.ui.models.view
 
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import com.falconlabs.aitranslator.ui.models.viewmodel.MockModelData
+import com.falconlabs.aitranslator.ui.models.viewmodel.ModelStoreState
+import com.falconlabs.aitranslator.ui.models.viewmodel.ModelStoreTab
+import com.falconlabs.aitranslator.ui.theme.LexiTheme
 
 // -- Model Store Screen Previews --
 
 @Preview(name = "Phone Light", widthDp = 360, heightDp = 800, showBackground = true)
 @Composable
-private fun ModelStoreScreenPhoneLightPreview() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
-        ModelStoreScreen()
+private fun ModelStorePhoneLightPreview() {
+    LexiTheme(darkTheme = false) {
+        ModelStoreContent(
+            state = ModelStoreState(
+                selectedTab = ModelStoreTab.TRANSLATION,
+                translationModels = MockModelData.translationModels,
+                sttModels = MockModelData.sttModels,
+                ttsModels = MockModelData.ttsModels,
+            ),
+            onIntent = {},
+            onModelClick = {},
+        )
     }
 }
 
 @Preview(name = "Phone Dark", widthDp = 360, heightDp = 800, showBackground = true)
 @Composable
-private fun ModelStoreScreenPhoneDarkPreview() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        ModelStoreScreen()
+private fun ModelStorePhoneDarkPreview() {
+    LexiTheme(darkTheme = true) {
+        ModelStoreContent(
+            state = ModelStoreState(
+                selectedTab = ModelStoreTab.TRANSLATION,
+                translationModels = MockModelData.translationModels,
+                sttModels = MockModelData.sttModels,
+                ttsModels = MockModelData.ttsModels,
+            ),
+            onIntent = {},
+            onModelClick = {},
+        )
     }
 }
 
 @Preview(name = "Tablet Light", widthDp = 768, heightDp = 1024, showBackground = true)
 @Composable
-private fun ModelStoreScreenTabletLightPreview() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
-        ModelStoreScreen()
+private fun ModelStoreTabletLightPreview() {
+    LexiTheme(darkTheme = false) {
+        ModelStoreContent(
+            state = ModelStoreState(
+                selectedTab = ModelStoreTab.TRANSLATION,
+                translationModels = MockModelData.translationModels,
+                sttModels = MockModelData.sttModels,
+                ttsModels = MockModelData.ttsModels,
+            ),
+            onIntent = {},
+            onModelClick = {},
+        )
     }
 }
 
 @Preview(name = "Tablet Dark", widthDp = 768, heightDp = 1024, showBackground = true)
 @Composable
-private fun ModelStoreScreenTabletDarkPreview() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        ModelStoreScreen()
+private fun ModelStoreTabletDarkPreview() {
+    LexiTheme(darkTheme = true) {
+        ModelStoreContent(
+            state = ModelStoreState(
+                selectedTab = ModelStoreTab.TRANSLATION,
+                translationModels = MockModelData.translationModels,
+                sttModels = MockModelData.sttModels,
+                ttsModels = MockModelData.ttsModels,
+            ),
+            onIntent = {},
+            onModelClick = {},
+        )
     }
 }
 
 @Preview(name = "Desktop Light", widthDp = 1280, heightDp = 800, showBackground = true)
 @Composable
-private fun ModelStoreScreenDesktopLightPreview() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
-        ModelStoreScreen()
+private fun ModelStoreDesktopLightPreview() {
+    LexiTheme(darkTheme = false) {
+        ModelStoreContent(
+            state = ModelStoreState(
+                selectedTab = ModelStoreTab.TRANSLATION,
+                translationModels = MockModelData.translationModels,
+                sttModels = MockModelData.sttModels,
+                ttsModels = MockModelData.ttsModels,
+            ),
+            onIntent = {},
+            onModelClick = {},
+        )
     }
 }
 
 @Preview(name = "Desktop Dark", widthDp = 1280, heightDp = 800, showBackground = true)
 @Composable
-private fun ModelStoreScreenDesktopDarkPreview() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
-        ModelStoreScreen()
+private fun ModelStoreDesktopDarkPreview() {
+    LexiTheme(darkTheme = true) {
+        ModelStoreContent(
+            state = ModelStoreState(
+                selectedTab = ModelStoreTab.TRANSLATION,
+                translationModels = MockModelData.translationModels,
+                sttModels = MockModelData.sttModels,
+                ttsModels = MockModelData.ttsModels,
+            ),
+            onIntent = {},
+            onModelClick = {},
+        )
+    }
+}
+
+// -- STT Tab Preview --
+
+@Preview(name = "Phone Light — STT", widthDp = 360, heightDp = 800, showBackground = true)
+@Composable
+private fun ModelStoreSttPreview() {
+    LexiTheme(darkTheme = false) {
+        ModelStoreContent(
+            state = ModelStoreState(
+                selectedTab = ModelStoreTab.STT,
+                translationModels = MockModelData.translationModels,
+                sttModels = MockModelData.sttModels,
+                ttsModels = MockModelData.ttsModels,
+            ),
+            onIntent = {},
+            onModelClick = {},
+        )
+    }
+}
+
+// -- TTS Tab Preview --
+
+@Preview(name = "Phone Light — TTS", widthDp = 360, heightDp = 800, showBackground = true)
+@Composable
+private fun ModelStoreTtsPreview() {
+    LexiTheme(darkTheme = false) {
+        ModelStoreContent(
+            state = ModelStoreState(
+                selectedTab = ModelStoreTab.TTS,
+                translationModels = MockModelData.translationModels,
+                sttModels = MockModelData.sttModels,
+                ttsModels = MockModelData.ttsModels,
+            ),
+            onIntent = {},
+            onModelClick = {},
+        )
     }
 }
 
@@ -81,48 +174,48 @@ private fun ModelStoreScreenDesktopDarkPreview() {
 
 @Preview(name = "Phone Light", widthDp = 360, heightDp = 800, showBackground = true)
 @Composable
-private fun ModelDetailScreenPhoneLightPreview() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
+private fun ModelDetailPhoneLightPreview() {
+    LexiTheme(darkTheme = false) {
         ModelDetailScreen()
     }
 }
 
 @Preview(name = "Phone Dark", widthDp = 360, heightDp = 800, showBackground = true)
 @Composable
-private fun ModelDetailScreenPhoneDarkPreview() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
+private fun ModelDetailPhoneDarkPreview() {
+    LexiTheme(darkTheme = true) {
         ModelDetailScreen()
     }
 }
 
 @Preview(name = "Tablet Light", widthDp = 768, heightDp = 1024, showBackground = true)
 @Composable
-private fun ModelDetailScreenTabletLightPreview() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
+private fun ModelDetailTabletLightPreview() {
+    LexiTheme(darkTheme = false) {
         ModelDetailScreen()
     }
 }
 
 @Preview(name = "Tablet Dark", widthDp = 768, heightDp = 1024, showBackground = true)
 @Composable
-private fun ModelDetailScreenTabletDarkPreview() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
+private fun ModelDetailTabletDarkPreview() {
+    LexiTheme(darkTheme = true) {
         ModelDetailScreen()
     }
 }
 
 @Preview(name = "Desktop Light", widthDp = 1280, heightDp = 800, showBackground = true)
 @Composable
-private fun ModelDetailScreenDesktopLightPreview() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
+private fun ModelDetailDesktopLightPreview() {
+    LexiTheme(darkTheme = false) {
         ModelDetailScreen()
     }
 }
 
 @Preview(name = "Desktop Dark", widthDp = 1280, heightDp = 800, showBackground = true)
 @Composable
-private fun ModelDetailScreenDesktopDarkPreview() {
-    MaterialTheme(colorScheme = darkColorScheme()) {
+private fun ModelDetailDesktopDarkPreview() {
+    LexiTheme(darkTheme = true) {
         ModelDetailScreen()
     }
 }

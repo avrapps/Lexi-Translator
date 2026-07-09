@@ -84,7 +84,13 @@ fun LexiNavGraph(navController: NavHostController, modifier: Modifier = Modifier
 
         // -- Settings Tab (includes Models as sub-screens) --
         navigation<SettingsGraph>(startDestination = SettingsMainRoute) {
-            composable<SettingsMainRoute> { SettingsMainScreen() }
+            composable<SettingsMainRoute> {
+                SettingsMainScreen(
+                    onNavigateToModelStore = {
+                        navController.navigate(ModelStoreRoute)
+                    },
+                )
+            }
             composable<AiSettingsRoute> { AiSettingsScreen() }
             composable<AudioSettingsRoute> { AudioSettingsScreen() }
             composable<PrivacySettingsRoute> { PrivacySettingsScreen() }
