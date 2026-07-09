@@ -83,9 +83,11 @@ class PlayBillingRepository(private val context: Context) : BillingRepository {
             return PurchaseResult.Unavailable
         }
 
-        val activity = resolveCurrentActivity() ?: return PurchaseResult.Error("No foreground Activity available")
+        val activity = resolveCurrentActivity()
+            ?: return PurchaseResult.Error("No foreground Activity available")
 
-        val productDetailsResult = queryProductDetails() ?: return PurchaseResult.Error("Failed to query product details")
+        val productDetailsResult = queryProductDetails()
+            ?: return PurchaseResult.Error("Failed to query product details")
 
         val productDetailsParams = listOf(
             BillingFlowParams.ProductDetailsParams.newBuilder()

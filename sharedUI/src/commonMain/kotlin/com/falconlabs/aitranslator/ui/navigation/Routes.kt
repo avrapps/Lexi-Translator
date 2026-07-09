@@ -28,7 +28,7 @@ import kotlinx.serialization.Serializable
  * All routes use kotlinx.serialization for Compose Navigation type-safe arguments.
  */
 
-// -- Top-level tab graph routes --
+// -- Top-level tab graph routes (5 tabs) --
 
 @Serializable
 object InterpreterGraph
@@ -41,9 +41,6 @@ object SpeakGraph
 
 @Serializable
 object LibraryGraph
-
-@Serializable
-object ModelsGraph
 
 @Serializable
 object SettingsGraph
@@ -86,15 +83,7 @@ data class FolderViewRoute(val folderId: String)
 @Serializable
 data class EntryDetailRoute(val entryId: String)
 
-// -- Models routes --
-
-@Serializable
-object ModelStoreRoute
-
-@Serializable
-data class ModelDetailRoute(val modelId: String)
-
-// -- Settings routes --
+// -- Settings routes (includes Models as sub-screen) --
 
 @Serializable
 object SettingsMainRoute
@@ -107,3 +96,9 @@ object AudioSettingsRoute
 
 @Serializable
 object PrivacySettingsRoute
+
+@Serializable
+object ModelStoreRoute
+
+@Serializable
+data class ModelDetailRoute(val modelId: String)

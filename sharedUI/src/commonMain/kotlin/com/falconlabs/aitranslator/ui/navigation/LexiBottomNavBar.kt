@@ -27,50 +27,49 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
+import aitranslator.sharedui.generated.resources.Res
+import aitranslator.sharedui.generated.resources.nav_tab_interpreter
+import aitranslator.sharedui.generated.resources.nav_tab_library
+import aitranslator.sharedui.generated.resources.nav_tab_settings
+import aitranslator.sharedui.generated.resources.nav_tab_speak
+import aitranslator.sharedui.generated.resources.nav_tab_translate
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+
 /**
  * Bottom navigation tab definition.
- * Icons will be replaced with proper vector assets from Compose Resources
- * once the theme system (task 1.7) is implemented.
+ * Labels use Compose Resources for i18n/Crowdin support.
  */
-enum class LexiTab(
-    val label: String,
-    val iconLabel: String,
-    val route: Any
-) {
+enum class LexiTab(val labelRes: StringResource, val iconLabel: String, val route: Any) {
     INTERPRETER(
-        label = "Interpreter",
+        labelRes = Res.string.nav_tab_interpreter,
         iconLabel = "\uD83C\uDF10",
         route = InterpreterGraph
     ),
     TRANSLATE(
-        label = "Translate",
+        labelRes = Res.string.nav_tab_translate,
         iconLabel = "\uD83D\uDCDD",
         route = TranslateGraph
     ),
     SPEAK(
-        label = "Speak",
+        labelRes = Res.string.nav_tab_speak,
         iconLabel = "\uD83D\uDD0A",
         route = SpeakGraph
     ),
     LIBRARY(
-        label = "Library",
+        labelRes = Res.string.nav_tab_library,
         iconLabel = "\uD83D\uDCDA",
         route = LibraryGraph
     ),
-    MODELS(
-        label = "Models",
-        iconLabel = "\u2699\uFE0F",
-        route = ModelsGraph
-    ),
     SETTINGS(
-        label = "Settings",
+        labelRes = Res.string.nav_tab_settings,
         iconLabel = "\uD83D\uDD27",
         route = SettingsGraph
     )
 }
 
 /**
- * Lexi bottom navigation bar with 6 tabs.
+ * Lexi bottom navigation bar with 5 tabs.
  */
 @Composable
 fun LexiBottomNavBar(
@@ -84,7 +83,7 @@ fun LexiBottomNavBar(
                 selected = tab == selectedTab,
                 onClick = { onTabSelected(tab) },
                 icon = { Text(text = tab.iconLabel) },
-                label = { Text(text = tab.label) }
+                label = { Text(text = stringResource(tab.labelRes)) }
             )
         }
     }

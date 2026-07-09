@@ -31,6 +31,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+
 import com.falconlabs.aitranslator.ui.navigation.LexiBottomNavBar
 import com.falconlabs.aitranslator.ui.navigation.LexiNavGraph
 import com.falconlabs.aitranslator.ui.navigation.LexiTab

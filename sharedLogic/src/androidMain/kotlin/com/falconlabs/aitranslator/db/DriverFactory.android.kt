@@ -25,7 +25,7 @@ import android.content.Context
 
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
-import net.sqlcipher.database.SupportFactory
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 
 /**
  * Android [DriverFactory] implementation using [AndroidSqliteDriver] with SQLCipher
@@ -36,7 +36,8 @@ import net.sqlcipher.database.SupportFactory
  */
 actual class DriverFactory(private val context: Context, private val passphrase: ByteArray) {
     actual fun createDriver(): SqlDriver {
-        val factory = SupportFactory(passphrase)
+        System.loadLibrary("sqlcipher")
+        val factory = SupportOpenHelperFactory(passphrase)
         return AndroidSqliteDriver(
             schema = LexiDatabase.Schema,
             context = context,

@@ -23,6 +23,7 @@ package com.falconlabs.aitranslator.di
 
 import com.falconlabs.aitranslator.analytics.DesktopAnalyticsImpl
 import com.falconlabs.aitranslator.analytics.LexiAnalytics
+
 import org.koin.dsl.module
 
 /**

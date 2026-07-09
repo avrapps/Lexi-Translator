@@ -162,6 +162,6 @@ class AdMobAdsManager(
          * Replace with the production ad unit ID before release.
          * Current value is the AdMob test ad unit ID for interstitials.
          */
-        private const val AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"
+        private const val AD_UNIT_ID = "ca-app-pub-2637104647414332/7017283143"
     }
 }

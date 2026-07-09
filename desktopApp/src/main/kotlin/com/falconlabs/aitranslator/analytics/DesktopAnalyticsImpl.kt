@@ -149,12 +149,11 @@ class DesktopAnalyticsImpl : LexiAnalytics {
         else -> "\"${escapeJson(value.toString())}\""
     }
 
-    private fun escapeJson(text: String): String =
-        text.replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-            .replace("\n", "\\n")
-            .replace("\r", "\\r")
-            .replace("\t", "\\t")
+    private fun escapeJson(text: String): String = text.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
 
     companion object {
         private const val MAX_BREADCRUMBS = 5

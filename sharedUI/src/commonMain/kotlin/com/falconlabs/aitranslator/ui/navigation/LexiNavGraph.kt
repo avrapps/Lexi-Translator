@@ -27,6 +27,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+
 import com.falconlabs.aitranslator.ui.interpreter.view.ConversationHistoryScreen
 import com.falconlabs.aitranslator.ui.interpreter.view.LiveInterpreterScreen
 import com.falconlabs.aitranslator.ui.library.view.EntryDetailScreen
@@ -49,10 +50,7 @@ import com.falconlabs.aitranslator.ui.translation.view.TextTranslateScreen
  * Uses nested navigation graphs per tab for back stack isolation.
  */
 @Composable
-fun LexiNavGraph(
-    navController: NavHostController,
-    modifier: Modifier = Modifier
-) {
+fun LexiNavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
     NavHost(
         navController = navController,
         startDestination = InterpreterGraph,
@@ -84,18 +82,14 @@ fun LexiNavGraph(
             composable<EntryDetailRoute> { EntryDetailScreen() }
         }
 
-        // -- Models Tab --
-        navigation<ModelsGraph>(startDestination = ModelStoreRoute) {
-            composable<ModelStoreRoute> { ModelStoreScreen() }
-            composable<ModelDetailRoute> { ModelDetailScreen() }
-        }
-
-        // -- Settings Tab --
+        // -- Settings Tab (includes Models as sub-screens) --
         navigation<SettingsGraph>(startDestination = SettingsMainRoute) {
             composable<SettingsMainRoute> { SettingsMainScreen() }
             composable<AiSettingsRoute> { AiSettingsScreen() }
             composable<AudioSettingsRoute> { AudioSettingsScreen() }
             composable<PrivacySettingsRoute> { PrivacySettingsScreen() }
+            composable<ModelStoreRoute> { ModelStoreScreen() }
+            composable<ModelDetailRoute> { ModelDetailScreen() }
         }
     }
 }

@@ -26,7 +26,8 @@ const devices: DeviceProfile[] = [
   // Android Tablet
   { name: "Galaxy-Tab-S9", width: 800, height: 1280, deviceScaleFactor: 2, platform: "android", category: "tablet" },
   // Desktops
-  { name: "MacBook-Pro-16", width: 1728, height: 1117, deviceScaleFactor: 2, platform: "macos", category: "desktop" },
+  // macOS App Store: 2880×1800 (highest supported retina resolution)
+  { name: "MacBook-Pro-16", width: 1440, height: 900, deviceScaleFactor: 2, platform: "macos", category: "desktop" },
   { name: "Windows-Surface-Laptop", width: 1536, height: 1024, deviceScaleFactor: 1.5, platform: "windows", category: "desktop" },
   { name: "Linux-Desktop", width: 1920, height: 1080, deviceScaleFactor: 1, platform: "linux", category: "desktop" },
 ];
@@ -112,7 +113,11 @@ function generateStoreScreenshot(
       canvasWidth = 2064; canvasHeight = 2752;
     }
   } else if (isDesktop) {
-    canvasWidth = 1920; canvasHeight = 1080;
+    if (device.platform === "macos") {
+      canvasWidth = 2880; canvasHeight = 1800;
+    } else {
+      canvasWidth = 1920; canvasHeight = 1080;
+    }
   } else if (isTablet) {
     canvasWidth = 1200; canvasHeight = 1600;
   } else {
@@ -385,6 +390,9 @@ test.describe("Lexi Translator - Store Screenshots", () => {
         } else if (device.platform === "ios" && device.category === "tablet") {
           if (device.name === "iPad-12.9-inch") { outWidth = 2048; outHeight = 2732; }
           else { outWidth = 2064; outHeight = 2752; }
+        } else if (device.platform === "macos") {
+          // Mac App Store: 2880×1800
+          outWidth = 2880; outHeight = 1800;
         } else if (device.category === "desktop") {
           outWidth = 1920; outHeight = 1080;
         } else if (device.category === "tablet") {

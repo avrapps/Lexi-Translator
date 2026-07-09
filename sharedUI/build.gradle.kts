@@ -66,3 +66,23 @@ kotlin {
 dependencies {
     androidRuntimeClasspath(libs.compose.uiTooling)
 }
+
+// Compose Resources generates code that doesn't conform to ktlint rules.
+// Disable all source set checks that include generated code from build/.
+afterEvaluate {
+    tasks.matching { task ->
+        task.name.startsWith("ktlint") &&
+            task.name.contains("SourceSet") &&
+            (task.name.contains("Check") || task.name.contains("Format"))
+    }.configureEach {
+        onlyIf {
+            // Only run if the task's source files are NOT from build/ directories
+            val sources = inputs.files.files
+            val allFromSrc = sources.isEmpty() ||
+                sources.all { file ->
+                    !file.path.contains("${File.separator}build${File.separator}")
+                }
+            allFromSrc
+        }
+    }
+}

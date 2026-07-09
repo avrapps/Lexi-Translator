@@ -1,10 +1,9 @@
 <resources>
     <!-- Bottom Navigation -->
-    <string name="nav_tab_interpreter">Interpreter</string>
+    <string name="nav_tab_interpreter">Interpret</string>
     <string name="nav_tab_translate">Translate</string>
     <string name="nav_tab_speak">Speak</string>
     <string name="nav_tab_library">Library</string>
-    <string name="nav_tab_models">Models</string>
     <string name="nav_tab_settings">Settings</string>
 
     <!-- Placeholder Screen Labels -->

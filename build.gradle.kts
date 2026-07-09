@@ -87,22 +87,6 @@ subprojects {
         outputToConsole.set(true)
         ignoreFailures.set(false)
         enableExperimentalRules.set(true)
-        filter {
-            include("**/src/**")
-        }
-    }
-
-    // Skip ktlint for generated source sets (SQLDelight, Compose Resources)
-    afterEvaluate {
-        tasks.matching {
-            it.name.startsWith("ktlint") && (
-                it.name.contains("Generated") ||
-                    it.name.contains("SqlDelight") ||
-                    it.name.contains("Resource")
-                )
-        }.configureEach {
-            enabled = false
-        }
     }
 
     configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension> {

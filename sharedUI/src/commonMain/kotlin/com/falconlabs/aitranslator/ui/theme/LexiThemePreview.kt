@@ -193,10 +193,7 @@ private fun ShapesSection() {
 }
 
 @Composable
-private fun ShapeBox(
-    label: String,
-    shape: androidx.compose.ui.graphics.Shape,
-) {
+private fun ShapeBox(label: String, shape: androidx.compose.ui.graphics.Shape,) {
     Box(
         modifier = Modifier
             .size(56.dp)
@@ -251,7 +248,6 @@ private fun CaptionSizesSection() {
         )
     }
 }
-
 
 // -- Multi-form-factor Theme Previews --
 
