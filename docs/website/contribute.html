@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contribute — Lexi Translator</title>
+  <meta name="description" content="Learn how to contribute to Lexi Translator. Architecture overview, build instructions, and coding guidelines for developers.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Site Header -->
+  <header class="site-header" role="banner">
+    <div class="container">
+      <a href="index.html" class="site-logo" aria-label="Lexi Translator home">
+        <span class="logo-icon" aria-hidden="true">L</span>
+        <span>Lexi</span>
+      </a>
+
+      <nav class="site-nav" aria-label="Main navigation">
+        <ul>
+          <li><a href="index.html#features">Features</a></li>
+          <li><a href="index.html#downloads">Download</a></li>
+          <li><a href="index.html#screenshots">Screenshots</a></li>
+          <li><a href="contribute.html" aria-current="page">Contribute</a></li>
+        </ul>
+      </nav>
+
+      <button class="nav-toggle" aria-label="Open navigation menu" aria-expanded="false">
+        <span aria-hidden="true">☰</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main id="main-content">
+
+    <!-- Page Hero -->
+    <section class="page-hero" aria-labelledby="page-heading">
+      <div class="container">
+        <h1 id="page-heading">Contribute to Lexi</h1>
+        <p>Lexi is built by the community. Whether you write code, translate strings, file bugs, or improve docs — every contribution matters.</p>
+      </div>
+    </section>
+
+    <!-- Contribution Content -->
+    <div class="contribute-content">
+      <div class="container">
+
+        <!-- Architecture Overview -->
+        <section class="contribute-section" aria-labelledby="architecture-heading">
+          <h2 id="architecture-heading">Architecture Overview</h2>
+          <p>Lexi is built with <strong>Kotlin Multiplatform (KMP)</strong> and <strong>Compose Multiplatform (CMP)</strong>, sharing business logic and UI across Android, Desktop, and iOS from a single codebase.</p>
+
+          <div class="arch-diagram" role="img" aria-label="Module dependency diagram showing platform apps depending on sharedUI, which depends on sharedLogic">
+<pre>
+┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+│ androidApp  │  │ desktopApp  │  │   iosApp    │
+└──────┬──────┘  └──────┬──────┘  └──────┬──────┘
+       │                 │                 │
+       └─────────────────┼─────────────────┘
+                         │
+                  ┌──────▼──────┐
+                  │   sharedUI  │  ← Navigation, Theme, Screens, ViewModels
+                  └──────┬──────┘
+                         │
+                  ┌──────▼──────┐
+                  │ sharedLogic │  ← Use Cases, Repositories, Engine Interfaces
+                  └─────────────┘
+</pre>
+          </div>
+
+          <h3>Key Modules</h3>
+          <ul>
+            <li><code>sharedLogic</code> — Domain layer (use cases, repository interfaces, domain models), data layer (SQLDelight, DataStore), and engine interfaces (Translation, STT, TTS, ModelManager)</li>
+            <li><code>sharedUI</code> — Compose Multiplatform screens, navigation graph, Neural-Minimalist theme, and MVI ViewModels</li>
+            <li><code>androidApp</code> — Android-specific DI (NNAPI, AudioRecord), platform engine implementations</li>
+            <li><code>desktopApp</code> — JVM Desktop-specific DI (CPU multi-threading, javax.sound), distribution packaging</li>
+            <li><code>iosApp</code> — iOS-specific DI (CoreML, AVFoundation) (future)</li>
+          </ul>
+
+          <h3>Design Patterns</h3>
+          <ul>
+            <li><strong>MVI (Model-View-Intent)</strong> — Unidirectional data flow with sealed Intent/State classes and pure reducers</li>
+            <li><strong>Constructor Injection (Koin)</strong> — All dependencies injected via Koin modules, no field injection or service locators</li>
+            <li><strong>ONNX Runtime</strong> — OPUS-MT (translation), Whisper (STT), Kokoro/Piper/VITS (TTS) running through unified ONNX sessions</li>
+            <li><strong>SQLDelight + SQLCipher</strong> — Type-safe SQL with AES-256 encryption for all user data</li>
+          </ul>
+        </section>
+
+        <!-- Build Instructions -->
+        <section class="contribute-section" aria-labelledby="build-heading">
+          <h2 id="build-heading">Build Instructions</h2>
+
+          <h3>Prerequisites</h3>
+          <ul>
+            <li>JDK 17+ (recommend Azul Zulu or Temurin)</li>
+            <li>Android Studio Ladybug (2024.2+) or IntelliJ IDEA 2024.1+</li>
+            <li>Android SDK 34, Build Tools 34.0.0, NDK 26+</li>
+            <li>Kotlin 2.0+ (managed via Gradle version catalog)</li>
+            <li>macOS for iOS builds (Xcode 15+)</li>
+          </ul>
+
+          <h3>Clone &amp; Build</h3>
+<pre><code># Clone the repository
+git clone https://github.com/AiTranslator-ML/Lexi.git
+cd Lexi
+
+# Build Android debug APK
+./gradlew :androidApp:assembleDebug
+
+# Build Desktop distribution
+./gradlew :desktopApp:packageDistributionForCurrentOS
+
+# Run Desktop app
+./gradlew :desktopApp:run
+
+# Run all unit tests
+./gradlew test
+
+# Run lint checks
+./gradlew ktlintCheck detekt</code></pre>
+
+          <h3>Project Structure</h3>
+<pre><code>AITranslator/
+├── androidApp/          # Android entry point + platform DI
+├── desktopApp/          # Desktop entry point + platform DI
+├── iosApp/              # iOS entry point (future)
+├── sharedLogic/         # KMP shared business logic
+│   └── src/
+│       ├── commonMain/  # Domain, data, engine interfaces
+│       ├── androidMain/ # Android engine implementations
+│       └── desktopMain/ # Desktop engine implementations
+├── sharedUI/            # Compose Multiplatform UI
+│   └── src/
+│       └── commonMain/  # Screens, navigation, theme
+├── docs/                # Documentation + website
+├── gradle/              # Version catalog (libs.versions.toml)
+└── .github/workflows/   # CI/CD pipelines</code></pre>
+        </section>
+
+        <!-- Coding Guidelines -->
+        <section class="contribute-section" aria-labelledby="guidelines-heading">
+          <h2 id="guidelines-heading">Coding Guidelines</h2>
+
+          <h3>Commit Convention</h3>
+          <p>We follow <a href="https://www.conventionalcommits.org/" rel="noopener noreferrer">Conventional Commits</a>:</p>
+<pre><code>feat(interpreter): add dual-language silence detection
+fix(tts): correct voice speed clamping at 3.0x
+docs(readme): update build instructions for KMP 2.0
+chore(deps): bump onnxruntime to 1.17.0</code></pre>
+
+          <h3>Code Style</h3>
+          <ul>
+            <li>Formatting enforced by <code>ktlint</code> + <code>detekt</code> via pre-commit hooks</li>
+            <li>Constructor injection only — no <code>lateinit</code>, no field injection</li>
+            <li>Sealed classes for all Intent/State/Event types</li>
+            <li>Exhaustive <code>when</code> expressions (no <code>else</code> branches on sealed hierarchies)</li>
+            <li>All public APIs require KDoc documentation</li>
+            <li>Max line length: 120 characters</li>
+          </ul>
+
+          <h3>Testing</h3>
+          <ul>
+            <li>Unit tests alongside source in <code>commonTest</code></li>
+            <li>UI integration tests using Compose Test framework</li>
+            <li>Property-based testing for critical algorithms (silence detection, validation, state machines)</li>
+            <li>Target: 80% code coverage on <code>sharedLogic</code></li>
+          </ul>
+
+          <h3>Branch Strategy</h3>
+          <ul>
+            <li><code>main</code> — stable, release-ready</li>
+            <li><code>develop</code> — integration branch</li>
+            <li><code>feat/*</code> — feature branches</li>
+            <li><code>fix/*</code> — bug fix branches</li>
+            <li><code>release/*</code> — release candidates</li>
+          </ul>
+        </section>
+
+        <!-- How to Contribute -->
+        <section class="contribute-section" aria-labelledby="howto-heading">
+          <h2 id="howto-heading">How to Contribute</h2>
+
+          <h3>Report Bugs</h3>
+          <p>Open a <a href="https://github.com/AiTranslator-ML/Lexi/issues/new" rel="noopener noreferrer">GitHub Issue</a> with steps to reproduce, expected vs. actual behavior, and your device/OS version.</p>
+
+          <h3>Submit Code</h3>
+          <ol>
+            <li>Fork the repository</li>
+            <li>Create a feature branch from <code>develop</code></li>
+            <li>Write your changes following the coding guidelines above</li>
+            <li>Add or update tests for any new functionality</li>
+            <li>Run <code>./gradlew ktlintCheck detekt test</code> locally</li>
+            <li>Open a Pull Request against <code>develop</code></li>
+          </ol>
+
+          <h3>Translate UI Strings</h3>
+          <p>We use <a href="https://crowdin.com/" rel="noopener noreferrer">Crowdin</a> for localization. Join the project to translate Lexi into your language — no coding required.</p>
+
+          <h3>Improve Documentation</h3>
+          <p>Documentation lives in the <code>docs/</code> directory. Feel free to fix typos, improve explanations, or add new guides via PR.</p>
+        </section>
+
+        <!-- License -->
+        <section class="contribute-section" aria-labelledby="license-heading">
+          <h2 id="license-heading">License</h2>
+          <p>Lexi Translator is licensed under the <a href="https://www.gnu.org/licenses/agpl-3.0.html" rel="noopener noreferrer">GNU Affero General Public License v3.0 (AGPL-3.0)</a>. By contributing, you agree that your contributions will be licensed under the same terms.</p>
+        </section>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-content">
+        <p class="footer-license">© 2025 Falcon Labs. Licensed under <a href="https://www.gnu.org/licenses/agpl-3.0.html" rel="noopener noreferrer">AGPL-3.0</a>.</p>
+        <nav class="footer-links" aria-label="Footer navigation">
+          <a href="https://github.com/AiTranslator-ML/Lexi" rel="noopener noreferrer">GitHub</a>
+          <a href="index.html">Home</a>
+          <a href="index.html#features">Features</a>
+          <a href="index.html#downloads">Download</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Minimal JS for mobile nav toggle -->
+  <script>
+    (function() {
+      var toggle = document.querySelector('.nav-toggle');
+      var nav = document.querySelector('.site-nav');
+      if (toggle && nav) {
+        toggle.addEventListener('click', function() {
+          var expanded = toggle.getAttribute('aria-expanded') === 'true';
+          toggle.setAttribute('aria-expanded', String(!expanded));
+          nav.style.display = expanded ? 'none' : 'block';
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
