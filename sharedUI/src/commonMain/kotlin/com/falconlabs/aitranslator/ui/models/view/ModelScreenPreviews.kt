@@ -43,6 +43,7 @@ private fun ModelStorePhoneLightPreview() {
             ),
             onIntent = {},
             onModelClick = {},
+            onBack = {},
         )
     }
 }
@@ -60,6 +61,7 @@ private fun ModelStorePhoneDarkPreview() {
             ),
             onIntent = {},
             onModelClick = {},
+            onBack = {},
         )
     }
 }
@@ -77,6 +79,7 @@ private fun ModelStoreTabletLightPreview() {
             ),
             onIntent = {},
             onModelClick = {},
+            onBack = {},
         )
     }
 }
@@ -94,6 +97,7 @@ private fun ModelStoreTabletDarkPreview() {
             ),
             onIntent = {},
             onModelClick = {},
+            onBack = {},
         )
     }
 }
@@ -111,6 +115,7 @@ private fun ModelStoreDesktopLightPreview() {
             ),
             onIntent = {},
             onModelClick = {},
+            onBack = {},
         )
     }
 }
@@ -128,6 +133,7 @@ private fun ModelStoreDesktopDarkPreview() {
             ),
             onIntent = {},
             onModelClick = {},
+            onBack = {},
         )
     }
 }
@@ -147,6 +153,7 @@ private fun ModelStoreSttPreview() {
             ),
             onIntent = {},
             onModelClick = {},
+            onBack = {},
         )
     }
 }
@@ -166,6 +173,7 @@ private fun ModelStoreTtsPreview() {
             ),
             onIntent = {},
             onModelClick = {},
+            onBack = {},
         )
     }
 }

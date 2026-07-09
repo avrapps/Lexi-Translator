@@ -21,14 +21,14 @@
 
 package com.falconlabs.aitranslator.di
 
+import com.falconlabs.aitranslator.ui.models.viewmodel.ModelStoreViewModel
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 /**
  * Koin module providing all ViewModels.
- * Use [viewModel] for ViewModel bindings (via koin-compose-viewmodel).
+ * Uses koin-compose-viewmodel for ViewModel bindings.
  */
 val viewModelModule = module {
-    // ViewModels will be registered here as viewModel {} bindings
-    // Example: viewModel { LiveInterpreterViewModel(get(), get()) }
-    // Example: viewModel { TextTranslateViewModel(get()) }
+    viewModel { ModelStoreViewModel(get()) }
 }

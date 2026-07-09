@@ -27,6 +27,14 @@ import com.falconlabs.aitranslator.analytics.FirebaseAnalyticsImpl
 import com.falconlabs.aitranslator.analytics.LexiAnalytics
 import com.falconlabs.aitranslator.billing.BillingRepository
 import com.falconlabs.aitranslator.billing.PlayBillingRepository
+import com.falconlabs.aitranslator.engine.model.AndroidChecksumVerifier
+import com.falconlabs.aitranslator.engine.model.AndroidDownloadFileManager
+import com.falconlabs.aitranslator.engine.model.AndroidHttpDownloader
+import com.falconlabs.aitranslator.engine.model.AndroidStorageInfoProvider
+import com.falconlabs.aitranslator.engine.model.ChecksumVerifier
+import com.falconlabs.aitranslator.engine.model.DownloadFileManager
+import com.falconlabs.aitranslator.engine.model.HttpDownloader
+import com.falconlabs.aitranslator.engine.model.StorageInfoProvider
 import org.koin.dsl.module
 
 /**
@@ -44,6 +52,12 @@ val androidPlatformModule = module {
     // Ads: AdMob interstitial — shown ONLY on app close, disabled when purchased or offline
     single<AdsManager> { AdMobAdsManager(get(), get()) }
 
-    // Platform-specific bindings for Android
-    // Example: single { AndroidSqliteDriver(LexiDatabase.Schema, get(), "lexi.db") }
+    // Database driver — SQLCipher encrypted, requires Context
+    single { com.falconlabs.aitranslator.db.DriverFactory(get(), "lexi-secure-key-2024".toByteArray()) }
+
+    // Model download infrastructure — Android implementations
+    single<HttpDownloader> { AndroidHttpDownloader() }
+    single<ChecksumVerifier> { AndroidChecksumVerifier() }
+    single<DownloadFileManager> { AndroidDownloadFileManager() }
+    single<StorageInfoProvider> { AndroidStorageInfoProvider(get()) }
 }

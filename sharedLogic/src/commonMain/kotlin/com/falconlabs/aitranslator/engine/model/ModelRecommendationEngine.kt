@@ -6,99 +6,84 @@
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
- *
- * COPYLEFT: Using any part of this code requires you to publish your
- * ENTIRE source code under AGPL-3.0. No exceptions. No closed-source use.
  */
 
 package com.falconlabs.aitranslator.engine.model
 
 import com.falconlabs.aitranslator.domain.model.AiModel
+import com.falconlabs.aitranslator.domain.model.CpuRequirement
 import com.falconlabs.aitranslator.domain.model.DeviceProfile
 import com.falconlabs.aitranslator.domain.model.ModelRecommendation
 
 /**
- * Computes device-aware model recommendations by filtering models that exceed
- * hardware capabilities and ranking the rest by a composite compatibility score.
+ * Computes model compatibility recommendations based on device capabilities.
+ * Scores models 0.0–1.0 based on RAM fit, storage fit, and CPU compatibility.
  *
- * Score computation (0.0 to 1.0):
- * - RAM fit (40%): lower ratio of model RAM requirement to device RAM → higher score
- * - Storage fit (30%): lower ratio of model size to available storage → higher score
- * - Quality boost (30%): higher quality rating → higher score
- *
- * Supports Requirement 6.7 (device-aware model recommendations).
+ * Supports Requirement 6.7 (recommendations ranked by compatibility score, limit 10).
  */
-class ModelRecommendationEngine {
-
-    companion object {
-        private const val MAX_RECOMMENDATIONS = 10
-        private const val RAM_WEIGHT = 0.4f
-        private const val STORAGE_WEIGHT = 0.3f
-        private const val QUALITY_WEIGHT = 0.3f
-        private const val MAX_QUALITY_RATING = 5.0f
-    }
+object ModelRecommendationEngine {
 
     /**
-     * Filters and ranks available models against the current device profile.
+     * Returns up to [limit] model recommendations ranked by compatibility score.
      *
-     * Models are excluded if they require more RAM than the device has available
-     * or if their file size exceeds available storage.
-     *
-     * @param availableModels Full catalog of models from the Model Store.
-     * @param deviceProfile Current device hardware capabilities.
-     * @return Up to [MAX_RECOMMENDATIONS] models ranked by compatibility score descending.
+     * Scoring formula (weights):
+     * - RAM fit: 40% (model RAM requirement vs available RAM)
+     * - Storage fit: 30% (model size vs available storage)
+     * - CPU match: 30% (model CPU requirement vs device core count)
      */
     fun recommend(
-        availableModels: List<AiModel>,
-        deviceProfile: DeviceProfile
+        catalog: List<AiModel>,
+        deviceProfile: DeviceProfile,
+        limit: Int = 10
     ): List<ModelRecommendation> {
-        return availableModels
-            .filter { model -> isCompatible(model, deviceProfile) }
+        return catalog
             .map { model -> ModelRecommendation(model, computeScore(model, deviceProfile)) }
+            .filter { it.compatibilityScore > 0.2f } // Exclude clearly incompatible
             .sortedByDescending { it.compatibilityScore }
-            .take(MAX_RECOMMENDATIONS)
+            .take(limit)
     }
 
-    /**
-     * Checks whether a model can physically run on the device.
-     * A model is incompatible if it requires more RAM than available
-     * or its download size exceeds available storage.
-     */
-    private fun isCompatible(model: AiModel, device: DeviceProfile): Boolean {
-        if (model.ramRequirementMb > device.availableRamMb) return false
-        if (model.sizeBytes > device.availableStorageBytes) return false
-        return true
-    }
-
-    /**
-     * Computes a composite compatibility score from 0.0 (poor fit) to 1.0 (ideal fit).
-     *
-     * Components:
-     * - RAM fit: 1.0 - (modelRam / deviceRam). Lower usage ratio → higher score.
-     * - Storage fit: 1.0 - (modelSize / deviceStorage). Lower usage ratio → higher score.
-     * - Quality boost: modelQuality / maxQuality. Higher quality → higher score.
-     */
     private fun computeScore(model: AiModel, device: DeviceProfile): Float {
-        val ramRatio = model.ramRequirementMb.toFloat() / device.availableRamMb.toFloat()
-        val ramScore = (1.0f - ramRatio).coerceIn(0.0f, 1.0f)
+        val ramScore = computeRamScore(model.ramRequirementMb, device.availableRamMb)
+        val storageScore = computeStorageScore(model.sizeBytes, device.availableStorageBytes)
+        val cpuScore = computeCpuScore(model.cpuRequirement, device.cpuCores, device.hasNnapi)
 
-        val storageRatio = model.sizeBytes.toFloat() / device.availableStorageBytes.toFloat()
-        val storageScore = (1.0f - storageRatio).coerceIn(0.0f, 1.0f)
+        return (ramScore * 0.4f) + (storageScore * 0.3f) + (cpuScore * 0.3f)
+    }
 
-        val qualityScore = (model.qualityRating / MAX_QUALITY_RATING).coerceIn(0.0f, 1.0f)
+    private fun computeRamScore(requiredMb: Int, availableMb: Int): Float {
+        if (availableMb <= 0) return 0f
+        val ratio = availableMb.toFloat() / requiredMb.toFloat()
+        return when {
+            ratio >= 4f -> 1.0f   // Plenty of headroom
+            ratio >= 2f -> 0.9f   // Comfortable
+            ratio >= 1.5f -> 0.7f // Tight but workable
+            ratio >= 1f -> 0.5f   // Barely fits
+            else -> 0.1f          // Insufficient RAM
+        }
+    }
 
-        val compositeScore = (ramScore * RAM_WEIGHT) +
-            (storageScore * STORAGE_WEIGHT) +
-            (qualityScore * QUALITY_WEIGHT)
+    private fun computeStorageScore(modelBytes: Long, availableBytes: Long): Float {
+        if (availableBytes <= 0L) return 0f
+        val ratio = availableBytes.toFloat() / modelBytes.toFloat()
+        return when {
+            ratio >= 10f -> 1.0f
+            ratio >= 5f -> 0.9f
+            ratio >= 2f -> 0.7f
+            ratio >= 1.2f -> 0.5f
+            ratio >= 1f -> 0.3f
+            else -> 0.0f // Not enough storage
+        }
+    }
 
-        return compositeScore.coerceIn(0.0f, 1.0f)
+    private fun computeCpuScore(requirement: CpuRequirement, cores: Int, hasNnapi: Boolean): Float {
+        val baseScore = when (requirement) {
+            CpuRequirement.LOW -> 1.0f
+            CpuRequirement.MEDIUM -> if (cores >= 4) 0.9f else 0.5f
+            CpuRequirement.HIGH -> if (cores >= 6) 0.8f else 0.3f
+        }
+        // Bonus for NNAPI availability (hardware acceleration)
+        val nnapiBonus = if (hasNnapi && requirement != CpuRequirement.LOW) 0.1f else 0f
+        return (baseScore + nnapiBonus).coerceAtMost(1.0f)
     }
 }

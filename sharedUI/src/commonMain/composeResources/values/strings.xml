@@ -34,6 +34,15 @@
     <string name="model_store_engine_label">Engine: %1$s</string>
     <string name="model_store_download_button">Download</string>
     <string name="model_store_multilingual">Multilingual</string>
+    <string name="model_store_filter_all">All</string>
+    <string name="model_store_filter_from">From</string>
+    <string name="model_store_filter_to">To</string>
+    <string name="model_store_filter_language">Language</string>
+    <string name="model_store_status_installed">Installed</string>
+    <string name="model_store_action_pause">Pause</string>
+    <string name="model_store_action_delete">Delete</string>
+    <string name="model_store_progress_speed">%1$d MB/s</string>
+    <string name="model_store_back">Back</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>

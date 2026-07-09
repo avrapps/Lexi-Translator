@@ -26,6 +26,14 @@ import com.falconlabs.aitranslator.data.repository.ModelRepository
 import com.falconlabs.aitranslator.data.repository.SqlDelightModelRepository
 import com.falconlabs.aitranslator.db.DriverFactory
 import com.falconlabs.aitranslator.db.LexiDatabase
+import com.falconlabs.aitranslator.engine.model.BundledModelCatalog
+import com.falconlabs.aitranslator.engine.model.DownloadManager
+import com.falconlabs.aitranslator.engine.model.ModelCatalogProvider
+import com.falconlabs.aitranslator.engine.model.ModelManager
+import com.falconlabs.aitranslator.engine.model.ModelManagerImpl
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 import org.koin.dsl.module
 
@@ -33,14 +41,27 @@ import org.koin.dsl.module
  * Koin module providing data-layer dependencies (repositories, DAOs, database).
  * Use [single] for singletons (database, repositories) and [factory] for transient instances.
  *
- * Platform modules must provide [DriverFactory] before this module is loaded.
+ * Platform modules must provide [DriverFactory], HttpDownloader, ChecksumVerifier,
+ * DownloadFileManager, and StorageInfoProvider before this module is loaded.
  */
 val dataModule = module {
     single { get<DriverFactory>().createDriver() }
     single { LexiDatabase(get()) }
 
+    // Application-scoped CoroutineScope for background work (downloads, etc.)
+    single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
+
     // Model repository — CRUD for installed models and download tracking
     single<ModelRepository> { SqlDelightModelRepository(get()) }
+
+    // Model catalog — bundled list of available models
+    single<ModelCatalogProvider> { BundledModelCatalog() }
+
+    // Download manager — orchestrates download state machine
+    single { DownloadManager(get(), get(), get(), get()) }
+
+    // Model manager — public API facade for model lifecycle
+    single<ModelManager> { ModelManagerImpl(get(), get(), get(), get(), get(), get()) }
 
     // Analytics settings (disabled by default, wires toggle to LexiAnalytics)
     single { AnalyticsSettings(get()) }

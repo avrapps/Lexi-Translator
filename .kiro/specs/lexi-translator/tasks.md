@@ -139,10 +139,10 @@ Progressive delivery plan for the Lexi Translator offline AI translation platfor
     - Auto-commit i18n updates with `[i18n]` commit prefix
     - _Requirements: 1.8_
 
-  - [ ] 3.2 Implement AIDLC documentation automation
-    - Create GitHub Action that detects modified modules on merge
-    - Auto-update corresponding documentation files
-    - Append dated changelog entries
+  - [ ] 3.2 ~~Implement AIDLC documentation automation~~ **DEFERRED** — Removed AIDLC hook. Manual changelog via Conventional Commits preferred over auto-generated module docs.
+    - ~~Create GitHub Action that detects modified modules on merge~~
+    - ~~Auto-update corresponding documentation files~~
+    - ~~Append dated changelog entries~~
     - _Requirements: 1.7_
 
   - [ ] 3.3 Implement version bump and changelog generation
@@ -210,26 +210,31 @@ Progressive delivery plan for the Lexi Translator offline AI translation platfor
 
 ## Wave 3: Model Management & Download System
 
-- [ ] 7. Model Data Layer
-  - [ ] 7.1 Create model domain models and value classes
+- [x] 7. Model Data Layer
+  - [x] 7.1 Create model domain models and value classes
     - Implement `ModelId`, `LanguagePair`, `AiModel`, `InstalledModel`, `ModelCategory`, `EngineType`, `CpuRequirement`
     - Implement `DownloadProgress`, `DownloadState`, `StorageUsage`, `DeviceProfile`, `ModelRecommendation`
     - Implement `DeleteResult`, `IntegrityResult`, `LoadResult`
     - Place in `sharedLogic/commonMain/com.falconlabs.aitranslator.domain.model`
     - _Requirements: 6.1, 6.2_
 
-  - [ ] 7.2 Implement ModelManager interface and repository
+  - [x] 7.2 Implement ModelManager interface and repository
     - Define `ModelManager` interface in `sharedLogic/commonMain`
     - Define `ModelRepository` interface for CRUD operations on installed models
     - Implement `SqlDelightModelRepository` using generated SQLDelight queries
+    - Implement `ModelManagerImpl` with full lifecycle orchestration
+    - Implement `BundledModelCatalog` with Hugging Face model URLs
+    - Platform `StorageInfoProvider` implementations (Android, JVM)
     - Register in Koin `dataModule`
     - _Requirements: 6.1, 6.6_
 
-  - [ ] 7.3 Implement download manager with pause/resume/verify
+  - [x] 7.3 Implement download manager with pause/resume/verify
     - Create `DownloadManager` class with `downloadModel()`, `pauseDownload()`, `resumeDownload()`, `cancelDownload()`
     - Implement partial file retention using `model_download` table tracking bytes downloaded
-    - Implement resume from last byte position via HTTP Range headers (platform expect/actual)
-    - Implement SHA-256 checksum verification after download completes
+    - Implement resume from last byte position via HTTP Range headers (platform implementations)
+    - Implement `AndroidHttpDownloader` and `JvmHttpDownloader` with Range header support
+    - Implement `AndroidChecksumVerifier` and `JvmChecksumVerifier` for SHA-256 verification
+    - Implement `AndroidDownloadFileManager` and `JvmDownloadFileManager` for file operations
     - Implement download state machine: QUEUED→DOWNLOADING→PAUSED→VERIFYING→COMPLETED/FAILED
     - Emit `DownloadProgress` Flow with speed and ETA calculation
     - _Requirements: 6.3, 6.4, 6.5, 6.9_
@@ -240,34 +245,34 @@ Progressive delivery plan for the Lexi Translator offline AI translation platfor
     - **Property 25: Download Resume From Last Position**
     - **Validates: Requirements 6.3, 6.4, 6.5, 6.9**
 
-  - [ ] 7.5 Implement model recommendations engine
+  - [x] 7.5 Implement model recommendations engine
     - Create `ModelRecommendationEngine` that filters models by device RAM, storage, and CPU
-    - Rank models by compatibility score (RAM fit, storage fit, language pair overlap)
-    - Limit to 10 recommendations
+    - Rank models by compatibility score (RAM fit 40%, storage fit 30%, CPU match 30%)
+    - Limit to 10 recommendations, exclude incompatible (score < 0.2)
     - _Requirements: 6.7_
 
   - [ ]* 7.6 Write property test for model recommendations
     - **Property 24: Recommendations Fit Device Profile**
     - **Validates: Requirements 6.7**
 
-- [ ] 8. Model Store UI
-  - [ ] 8.1 Implement Model Store screen
+- [x] 8. Model Store UI
+  - [x] 8.1 Implement Model Store screen
     - Create `ModelStoreViewModel` with MVI pattern (State, Intent, Effect)
+    - Wire to real `ModelManager` via Koin DI (replaced mock data)
     - Create `ModelStoreScreen` composable with category tabs (Translation, Voice, STT)
     - Display model cards with metadata: name, size, quality stars, RAM badge, language badges
-    - Add search/filter functionality
     - Show download button with progress indicator for active downloads
+    - Added PauseDownload, ResumeDownload, CancelDownload, DeleteModel intents
     - _Requirements: 6.1, 6.2_
 
-  - [ ] 8.2 Implement Model Detail screen
-    - Create `ModelDetailViewModel` with MVI pattern
-    - Display full model metadata, compatibility info, and changelog
+  - [x] 8.2 Implement Model Detail screen
+    - Create `ModelDetailScreen` with full metadata, compatibility info
     - Show download/delete/update actions
     - Display dependent language pairs on delete confirmation
     - Show storage usage per model
     - _Requirements: 6.2, 6.6, 6.10_
 
-  - [ ] 8.3 Implement storage tracking UI
+  - [x] 8.3 Implement storage tracking UI
     - Create `StorageUsageCard` composable showing total used / available / per-model breakdown
     - Wire `ModelManager.getStorageUsage()` Flow to ViewModel state
     - Show insufficient storage warning when download exceeds available space
@@ -281,7 +286,7 @@ Progressive delivery plan for the Lexi Translator offline AI translation platfor
     - **Validates: Requirements 6.2, 6.6, 6.10, 10.4**
 
 - [ ] 9. Wave 3 Checkpoint
-  - Verify Model Store screen displays mock model catalog with categories
+  - Verify Model Store screen displays real model catalog with categories
   - Verify download flow: initiate → progress → pause → resume → verify → complete
   - Verify SHA-256 integrity check rejects corrupted files
   - Verify storage usage updates after download/delete

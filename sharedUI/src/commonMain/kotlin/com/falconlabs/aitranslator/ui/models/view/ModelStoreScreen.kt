@@ -34,11 +34,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
@@ -48,19 +57,22 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.falconlabs.aitranslator.domain.model.AiModel
+import com.falconlabs.aitranslator.domain.model.DownloadProgress
 import com.falconlabs.aitranslator.domain.model.ModelCategory
 import com.falconlabs.aitranslator.domain.model.ModelId
 import com.falconlabs.aitranslator.ui.models.viewmodel.ModelStoreIntent
 import com.falconlabs.aitranslator.ui.models.viewmodel.ModelStoreState
 import com.falconlabs.aitranslator.ui.models.viewmodel.ModelStoreTab
 import com.falconlabs.aitranslator.ui.models.viewmodel.ModelStoreViewModel
-import com.falconlabs.aitranslator.ui.widgets.MockStorageData
 import com.falconlabs.aitranslator.ui.widgets.StorageUsageCard
 import org.jetbrains.compose.resources.stringResource
 import aitranslator.sharedui.generated.resources.Res
@@ -73,6 +85,15 @@ import aitranslator.sharedui.generated.resources.model_store_ram_label
 import aitranslator.sharedui.generated.resources.model_store_engine_label
 import aitranslator.sharedui.generated.resources.model_store_download_button
 import aitranslator.sharedui.generated.resources.model_store_multilingual
+import aitranslator.sharedui.generated.resources.model_store_filter_all
+import aitranslator.sharedui.generated.resources.model_store_filter_from
+import aitranslator.sharedui.generated.resources.model_store_filter_to
+import aitranslator.sharedui.generated.resources.model_store_filter_language
+import aitranslator.sharedui.generated.resources.model_store_status_installed
+import aitranslator.sharedui.generated.resources.model_store_action_pause
+import aitranslator.sharedui.generated.resources.model_store_action_delete
+import aitranslator.sharedui.generated.resources.model_store_progress_speed
+import aitranslator.sharedui.generated.resources.model_store_back
 
 /**
  * Model Store screen displaying downloadable AI models across
@@ -81,17 +102,16 @@ import aitranslator.sharedui.generated.resources.model_store_multilingual
 @Composable
 fun ModelStoreScreen(
     modifier: Modifier = Modifier,
-    onModelClick: (ModelId) -> Unit = { modelId ->
-        // Default: log navigation intent until navController is wired
-        println("Navigate to ModelDetail for: ${modelId.id}")
-    },
-    viewModel: ModelStoreViewModel = viewModel { ModelStoreViewModel() },
+    onBack: () -> Unit = {},
+    onModelClick: (ModelId) -> Unit = {},
+    viewModel: ModelStoreViewModel = viewModel { ModelStoreViewModel(org.koin.java.KoinJavaComponent.get(com.falconlabs.aitranslator.engine.model.ModelManager::class.java)) },
 ) {
     val state by viewModel.state.collectAsState()
     ModelStoreContent(
         state = state,
         onIntent = viewModel::onIntent,
         onModelClick = onModelClick,
+        onBack = onBack,
         modifier = modifier,
     )
 }
@@ -102,6 +122,7 @@ internal fun ModelStoreContent(
     state: ModelStoreState,
     onIntent: (ModelStoreIntent) -> Unit,
     onModelClick: (ModelId) -> Unit,
+    onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -113,6 +134,15 @@ internal fun ModelStoreContent(
                         style = MaterialTheme.typography.titleLarge,
                     )
                 },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Text(
+                            text = "←",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                     titleContentColor = MaterialTheme.colorScheme.onSurface,
@@ -122,13 +152,18 @@ internal fun ModelStoreContent(
         modifier = modifier,
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-            // Storage usage card at the top
-            StorageUsageCard(
-                totalUsedBytes = MockStorageData.totalUsedBytes,
-                availableBytes = MockStorageData.availableBytes,
-                perModelUsage = MockStorageData.perModelUsage,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            )
+            // Storage usage card — uses real data from ModelManager
+            val storageUsage = state.storageUsage
+            if (storageUsage != null) {
+                StorageUsageCard(
+                    totalUsedBytes = storageUsage.totalUsedBytes,
+                    availableBytes = storageUsage.availableBytes,
+                    perModelUsage = storageUsage.perModelUsage.entries.map { (id, size) ->
+                        com.falconlabs.aitranslator.ui.widgets.ModelStorageEntry(id, id.id, size)
+                    },
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                )
+            }
 
             ModelStoreTabRow(
                 selectedTab = state.selectedTab,
@@ -140,16 +175,39 @@ internal fun ModelStoreContent(
                     modifier = Modifier.align(Alignment.CenterHorizontally).padding(32.dp),
                 )
             } else {
+                // Language filters for Translation tab
+                if (state.selectedTab == ModelStoreTab.TRANSLATION) {
+                    TranslationFilters(
+                        models = state.translationModels,
+                        selectedSource = state.selectedSourceLang,
+                        selectedTarget = state.selectedTargetLang,
+                        onSourceSelected = { onIntent(ModelStoreIntent.SelectSourceLang(it)) },
+                        onTargetSelected = { onIntent(ModelStoreIntent.SelectTargetLang(it)) },
+                    )
+                } else {
+                    LanguageFilter(
+                        models = state.currentModels,
+                        selectedLang = state.selectedFilterLang,
+                        onLangSelected = { onIntent(ModelStoreIntent.SelectFilterLang(it)) },
+                    )
+                }
+
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     item { Spacer(modifier = Modifier.height(8.dp)) }
-                    items(state.currentModels, key = { it.id.id }) { model ->
+                    items(state.filteredModels, key = { it.id.id }) { model ->
+                        val isInstalled = state.isInstalled(model.id)
+                        val downloadProgress = state.getDownloadProgress(model.id)
                         ModelCard(
                             model = model,
+                            isInstalled = isInstalled,
+                            downloadProgress = downloadProgress,
                             onCardClick = { onModelClick(model.id) },
                             onDownloadClick = { onIntent(ModelStoreIntent.DownloadModel(model.id)) },
+                            onPauseClick = { onIntent(ModelStoreIntent.PauseDownload(model.id)) },
+                            onDeleteClick = { onIntent(ModelStoreIntent.DeleteModel(model.id)) },
                         )
                     }
                     item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -196,20 +254,25 @@ private fun ModelStoreTabRow(
 @Composable
 private fun ModelCard(
     model: AiModel,
+    isInstalled: Boolean,
+    downloadProgress: DownloadProgress?,
     onCardClick: () -> Unit,
     onDownloadClick: () -> Unit,
+    onPauseClick: () -> Unit,
+    onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier.fillMaxWidth().clickable { onCardClick() },
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = if (isInstalled) MaterialTheme.colorScheme.secondaryContainer
+            else MaterialTheme.colorScheme.surfaceVariant,
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Row 1: Name + language pair
+            // Row 1: Name + language pair + status badge
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -224,33 +287,38 @@ private fun ModelCard(
                     modifier = Modifier.weight(1f),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = formatLanguagePair(model),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                if (isInstalled) {
+                    Text(
+                        text = "✓ " + stringResource(Res.string.model_store_status_installed),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                } else {
+                    Text(
+                        text = formatLanguagePair(model),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Row 2: Size, quality stars, RAM badge, engine
+            // Row 2: Size, quality stars, RAM badge
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Size
                 Text(
                     text = stringResource(Res.string.model_store_size_label, formatSize(model.sizeBytes)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                // Quality stars
                 Text(
                     text = formatQualityStars(model.qualityRating),
                     style = MaterialTheme.typography.bodySmall,
                 )
-                // RAM badge
                 Text(
                     text = stringResource(Res.string.model_store_ram_label, model.ramRequirementMb),
                     style = MaterialTheme.typography.bodySmall,
@@ -258,9 +326,40 @@ private fun ModelCard(
                 )
             }
 
+            // Download progress bar
+            if (downloadProgress != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                val fraction = if (downloadProgress.totalBytes > 0L) {
+                    (downloadProgress.bytesDownloaded.toFloat() / downloadProgress.totalBytes.toFloat()).coerceIn(0f, 1f)
+                } else 0f
+                LinearProgressIndicator(
+                    progress = { fraction },
+                    modifier = Modifier.fillMaxWidth().height(6.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = "${formatSize(downloadProgress.bytesDownloaded)} / ${formatSize(downloadProgress.totalBytes)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    val speedMb = (downloadProgress.speedBytesPerSec / 1_000_000).toInt()
+                    Text(
+                        text = stringResource(Res.string.model_store_progress_speed, speedMb),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Row 3: Engine type + Download button
+            // Row 3: Engine type + action button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -271,8 +370,27 @@ private fun ModelCard(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline,
                 )
-                Button(onClick = onDownloadClick) {
-                    Text(text = stringResource(Res.string.model_store_download_button))
+                when {
+                    downloadProgress != null -> {
+                        OutlinedButton(onClick = onPauseClick) {
+                            Text(text = stringResource(Res.string.model_store_action_pause))
+                        }
+                    }
+                    isInstalled -> {
+                        OutlinedButton(
+                            onClick = onDeleteClick,
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text(text = stringResource(Res.string.model_store_action_delete))
+                        }
+                    }
+                    else -> {
+                        Button(onClick = onDownloadClick) {
+                            Text(text = stringResource(Res.string.model_store_download_button))
+                        }
+                    }
                 }
             }
         }
@@ -284,6 +402,133 @@ private fun formatSize(bytes: Long): String {
     val mb = bytes / 1_000_000
     return "$mb MB"
 }
+
+@Composable
+private fun TranslationFilters(
+    models: List<AiModel>,
+    selectedSource: String?,
+    selectedTarget: String?,
+    onSourceSelected: (String?) -> Unit,
+    onTargetSelected: (String?) -> Unit,
+) {
+    val sourceLanguages = models.mapNotNull { it.languagePair?.source?.code }.distinct().sorted()
+    val targetLanguages = if (selectedSource != null) {
+        models.filter { it.languagePair?.source?.code == selectedSource }
+            .mapNotNull { it.languagePair?.target?.code }.distinct().sorted()
+    } else {
+        models.mapNotNull { it.languagePair?.target?.code }.distinct().sorted()
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        LexiDropdown(
+            label = stringResource(Res.string.model_store_filter_from),
+            options = sourceLanguages,
+            selected = selectedSource,
+            onSelected = onSourceSelected,
+            modifier = Modifier.weight(1f),
+        )
+        LexiDropdown(
+            label = stringResource(Res.string.model_store_filter_to),
+            options = targetLanguages,
+            selected = selectedTarget,
+            onSelected = onTargetSelected,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun LanguageFilter(
+    models: List<AiModel>,
+    selectedLang: String?,
+    onLangSelected: (String?) -> Unit,
+) {
+    val languages = models.mapNotNull { model ->
+        model.languagePair?.source?.code
+            ?: model.languagePair?.target?.code
+            ?: extractLangFromName(model.name)
+    }.distinct().sorted()
+
+    if (languages.isNotEmpty()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 6.dp),
+        ) {
+            LexiDropdown(
+                label = stringResource(Res.string.model_store_filter_language),
+                options = languages,
+                selected = selectedLang,
+                onSelected = onLangSelected,
+                modifier = Modifier.fillMaxWidth(0.5f),
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LexiDropdown(
+    label: String,
+    options: List<String>,
+    selected: String?,
+    onSelected: (String?) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val displayValue = selected?.uppercase() ?: stringResource(Res.string.model_store_filter_all)
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+        modifier = modifier,
+    ) {
+        OutlinedTextField(
+            value = displayValue,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label, style = MaterialTheme.typography.labelSmall) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                .fillMaxWidth(),
+            singleLine = true,
+            textStyle = MaterialTheme.typography.bodySmall,
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            DropdownMenuItem(
+                text = { Text(stringResource(Res.string.model_store_filter_all)) },
+                onClick = { onSelected(null); expanded = false },
+            )
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option.uppercase()) },
+                    onClick = { onSelected(option); expanded = false },
+                )
+            }
+        }
+    }
+}
+
+/** Extract language hint from model name like "Kokoro English Female" -> "en" */
+private fun extractLangFromName(name: String): String? {
+    val langMap = mapOf(
+        "english" to "en", "german" to "de", "french" to "fr",
+        "spanish" to "es", "japanese" to "ja", "hindi" to "hi",
+        "chinese" to "zh", "multilingual" to "multi"
+    )
+    val lower = name.lowercase()
+    return langMap.entries.firstOrNull { lower.contains(it.key) }?.value
+}
+
 
 /** Format language pair display (e.g., "en → de") or "Multilingual" for STT. */
 @Composable
