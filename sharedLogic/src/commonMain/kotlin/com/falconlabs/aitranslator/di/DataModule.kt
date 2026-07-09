@@ -22,6 +22,8 @@
 package com.falconlabs.aitranslator.di
 
 import com.falconlabs.aitranslator.analytics.AnalyticsSettings
+import com.falconlabs.aitranslator.data.repository.ModelRepository
+import com.falconlabs.aitranslator.data.repository.SqlDelightModelRepository
 import com.falconlabs.aitranslator.db.DriverFactory
 import com.falconlabs.aitranslator.db.LexiDatabase
 
@@ -36,6 +38,9 @@ import org.koin.dsl.module
 val dataModule = module {
     single { get<DriverFactory>().createDriver() }
     single { LexiDatabase(get()) }
+
+    // Model repository — CRUD for installed models and download tracking
+    single<ModelRepository> { SqlDelightModelRepository(get()) }
 
     // Analytics settings (disabled by default, wires toggle to LexiAnalytics)
     single { AnalyticsSettings(get()) }

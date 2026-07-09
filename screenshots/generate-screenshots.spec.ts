@@ -128,8 +128,14 @@ function generateStoreScreenshot(
   // Device mockup sizing — fill more of the canvas
   let mockupWidth: number, mockupHeight: number;
   if (isDesktop) {
-    mockupWidth = Math.round(canvasWidth * 0.55);
-    mockupHeight = Math.round(mockupWidth * (device.height / device.width));
+    // Size the window to fill ~85% of canvas height, then derive width from aspect ratio
+    mockupHeight = Math.round(canvasHeight * 0.82);
+    mockupWidth = Math.round(mockupHeight * (device.width / device.height));
+    // Clamp width to max 70% of canvas
+    if (mockupWidth > canvasWidth * 0.70) {
+      mockupWidth = Math.round(canvasWidth * 0.70);
+      mockupHeight = Math.round(mockupWidth * (device.height / device.width));
+    }
   } else if (isTablet) {
     mockupWidth = Math.round(canvasWidth * 0.72);
     mockupHeight = Math.round(mockupWidth * (device.height / device.width));
@@ -143,8 +149,8 @@ function generateStoreScreenshot(
     ? generateDesktopMockup(device, mockupWidth, mockupHeight, screenshotBase64, slide.accentColor)
     : generateMobileMockup(device, mockupWidth, mockupHeight, screenshotBase64, slide.accentColor);
 
-  const headlineSize = isDesktop ? "56px" : isTablet ? "48px" : "44px";
-  const subSize = isDesktop ? "19px" : isTablet ? "17px" : "16px";
+  const headlineSize = isDesktop ? (device.platform === "macos" ? "72px" : "56px") : isTablet ? "48px" : "44px";
+  const subSize = isDesktop ? (device.platform === "macos" ? "24px" : "19px") : isTablet ? "17px" : "16px";
 
   // Escape newlines in headline for HTML
   const headlineHtml = slide.headline.replace(/\n/g, "<br/>");
@@ -160,7 +166,7 @@ body{width:${canvasWidth}px;height:${canvasHeight}px;overflow:hidden;font-family
 .canvas{
   width:100%;height:100%;
   background:${slide.bgGradient};
-  display:flex;align-items:center;padding:50px 70px;gap:50px;
+  display:flex;align-items:center;padding:40px 50px;gap:40px;
   position:relative;overflow:hidden;
 }
 /* Decorative glows */
