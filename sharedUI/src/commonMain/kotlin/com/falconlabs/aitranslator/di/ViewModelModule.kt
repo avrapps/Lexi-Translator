@@ -21,6 +21,7 @@
 
 package com.falconlabs.aitranslator.di
 
+import com.falconlabs.aitranslator.ui.interpreter.viewmodel.LiveInterpreterViewModel
 import com.falconlabs.aitranslator.ui.models.viewmodel.ModelStoreViewModel
 import com.falconlabs.aitranslator.ui.translation.viewmodel.TextTranslateViewModel
 import org.koin.core.module.dsl.viewModel
@@ -33,4 +34,5 @@ import org.koin.dsl.module
 val viewModelModule = module {
     viewModel { ModelStoreViewModel(get()) }
     viewModel { TextTranslateViewModel(get()) }
+    viewModel { LiveInterpreterViewModel(get()) }
 }

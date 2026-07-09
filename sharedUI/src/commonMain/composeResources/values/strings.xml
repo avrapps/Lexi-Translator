@@ -45,6 +45,11 @@
     <string name="model_store_progress_speed">%1$d MB/s</string>
     <string name="model_store_back">Back</string>
 
+    <!-- Live Interpreter -->
+    <string name="interpreter_start">Start Listening</string>
+    <string name="interpreter_stop">Stop</string>
+    <string name="interpreter_simulate_placeholder">Type to simulate speech…</string>
+
     <!-- Text Translation -->
     <string name="translate_input_placeholder">Enter text to translate…</string>
     <string name="translate_action_translate">Translate</string>

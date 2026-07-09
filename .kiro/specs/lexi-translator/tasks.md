@@ -374,8 +374,80 @@ Progressive delivery plan for the Lexi Translator offline AI translation platfor
 
 ## Wave 5: Live Interpreter Screen
 
-- [ ] 13. STT Engine Layer
-  - [ ] 13.1 Define SttEngine interface and event models
+- [x] 13. STT Engine Layer
+  - [x] 13.1 Define SttEngine interface and event models
+    - Created `SttEngine` interface in `sharedLogic/commonMain`
+    - Created `SttEvent` sealed interface: PartialTranscription, FinalTranscription, AudioLevel, Error, SilenceDetected
+    - Created `SttConfig` data class (languages, silenceThresholdMs, sampleRate, enableDualLanguage)
+    - Created `SttError` sealed class hierarchy
+    - _Requirements: 2.3, 2.4, 2.7_
+
+  - [ ] 13.2 Implement Whisper ONNX STT engine
+    - **Deferred** — Whisper model integration requires audio capture platform implementation
+    - Placeholder: SimulateInput intent allows typed text to flow through translation pipeline
+    - _Requirements: 2.3, 8.2_
+
+  - [x] 13.3 Implement silence detection algorithm
+    - Created `SilenceDetector` class with configurable threshold (default 1500ms)
+    - Amplitude tracking with isSilent state machine
+    - Fires once per silence event, resets on speech detection
+    - _Requirements: 2.4_
+
+  - [ ]* 13.4 Write property tests for silence detection
+    - **Property 1: Silence Detection Threshold**
+    - **Validates: Requirements 2.4**
+
+- [x] 14. AI Orb and Live Interpreter UI
+  - [x] 14.1 Implement AI Orb composable
+    - Created `AiOrb` composable with all 7 animated states: Idle, Listening, Thinking, Speaking, Downloading, Error, LowBattery
+    - Animated gradient, pulse scale, color transitions per state
+    - Waveform bar visualization reflecting audio amplitude in Listening state
+    - State label displayed below orb
+    - _Requirements: 2.1, 2.2, 7.4, 9.7_
+
+  - [x] 14.2 Implement Live Interpreter screen
+    - Created `LiveInterpreterViewModel` with MVI (LiveInterpreterState, LiveInterpreterIntent)
+    - Created `LiveInterpreterScreen` with:
+      - AI Orb centered display
+      - Language pair selectors with swap
+      - Scrollable conversation cards list (auto-scrolls to latest)
+      - Mode chips: Auto-Speak, Dual Language, Push-to-Talk
+      - Simulate input row (until Whisper STT is wired)
+    - Implemented `ConversationCard` with source/translated text, confidence dot, timestamps
+    - _Requirements: 2.1, 2.7, 2.8, 2.10, 2.11_
+
+  - [x] 14.3 Dual Language Mode toggle
+    - Toggle available in mode chips
+    - Language detection stub in place for future Whisper integration
+    - _Requirements: 2.7, 2.8_
+
+  - [ ]* 14.4 Write property tests for Dual Language Mode
+
+  - [x] 14.5 Implement Push-to-Talk mode
+    - Toggle switches to PushToTalk interaction mode
+    - Button shows "Hold to Speak" / "Release to Translate"
+    - PushToTalkPressed/Released intents wired
+    - _Requirements: 2.10_
+
+  - [x] 14.6 Caption Size
+    - `CaptionSize` enum: Small(14sp), Medium(18sp), Large(24sp), Huge(32sp), Presentation(48sp)
+    - Applied to translated text in conversation cards
+    - _Requirements: 2.13, 2.14_
+
+  - [x] 14.7 Auto-Speak and orb state
+    - Auto-Speak toggles SPEAKING orb state after translation completes
+    - Auto-returns to IDLE after 1.5s (TTS placeholder)
+    - _Requirements: 2.6, 2.9_
+
+  - [ ]* 14.8 Write property tests for conversation storage
+
+- [ ] 15. Wave 5 Checkpoint
+  - Verify AI Orb animates through all 7 states correctly
+  - Verify conversation cards display with complete metadata
+  - Verify language swap works in interpreter
+  - Verify Push-to-Talk mode switches behavior correctly
+  - Verify conversations auto-scroll to latest
+  - Ensure all tests pass, ask the user if questions arise.
     - Create `SttEngine` interface in `sharedLogic/commonMain`
     - Create `SttEvent` sealed interface: PartialTranscription, FinalTranscription, AudioLevel, Error, SilenceDetected
     - Create `SttConfig` data class (languages, silenceThresholdMs, sampleRate, enableDualLanguage)
